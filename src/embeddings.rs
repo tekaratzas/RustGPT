@@ -1,9 +1,6 @@
 use ndarray::{s, Array2, Axis};
 use rand::prelude::*;
-use crate::vocab::Vocab;
-
-const MAX_SEQ_LEN: usize = 10;
-const EMBEDDING_DIM: usize = 4;
+use crate::{vocab::Vocab, EMBEDDING_DIM, MAX_SEQ_LEN};
 
 pub struct Embeddings {
     token_embeddings: Array2<f32>,
@@ -13,7 +10,7 @@ pub struct Embeddings {
 impl Default for Embeddings { 
     fn default() -> Self {
         Self { 
-            token_embeddings: Self::init_embeddings(Vocab::vocab_size(), EMBEDDING_DIM),
+            token_embeddings: Self::init_embeddings(Vocab::words().len(), EMBEDDING_DIM),
             positional_embeddings: Self::init_positional_embeddings(MAX_SEQ_LEN, EMBEDDING_DIM),
          }
     }
