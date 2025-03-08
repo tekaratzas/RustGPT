@@ -38,15 +38,25 @@ impl Default for LLM {
 }
 impl LLM {
     pub fn predict(&self, text: &str) -> String {
+        // Generated Embeddings - Learned - seequence x embedding_size
         let token_embeddings = self.embed(text);
+
+        // Transformer Block - Learned - sequence x hidden_size
         let output = self.transformer_block.forward(&token_embeddings);
+
+        // Output Projection - Learned - sequence x vocab_size
         let logits  = self.output_projection.forward(&output);
+
+        // Softmax - convert activiations of each token to a probability distribution over the vocabulary
         let probs = Self::softmax(&logits);
+
+        // Greedy Decode - Choose the highest probability token for each position
         let tokens = Self::greedy_decode(&probs);
 
+        // Convert token_ids to strings
         let token_strs = tokens.iter().map(|t| self.vocab.decode[t].clone()).collect::<Vec<String>>();
 
-        token_strs.join("")
+        token_strs.join(" ")
     }
 
     pub fn tokenize(&self, text: &str) -> Vec<String> {
