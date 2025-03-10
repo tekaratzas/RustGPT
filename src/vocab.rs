@@ -35,6 +35,6 @@ impl Vocab {
     }
 
     pub fn words() -> Vec<&'static str> {
-        vec!["Hello", "world"]
+        vec!["hello", "world", "this", "is", "rust", "</s>"]
     }
 }

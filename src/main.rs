@@ -16,7 +16,7 @@ const HIDDEN_DIM: usize = 4;
 
 fn main() {
     // Mock input
-    let string = String::from("Hello world");
+    let string = String::from("hello world </s>");
 
     let llm = LLM::default();
 

@@ -37,43 +37,51 @@ impl Default for LLM {
     }
 }
 impl LLM {
+    // TODO: Make this autoregressive
     pub fn predict(&self, text: &str) -> String {
-        // Generated Embeddings - Learned - seequence x embedding_size
-        let token_embeddings = self.embed(text);
+        // Tokenize the input text
+        let mut tokenized = self.tokenize(text);
+        let mut output_tokens: Vec<usize> = Vec::new();
 
-        // Transformer Block - Learned - sequence x hidden_size
-        let output = self.transformer_block.forward(&token_embeddings);
+        for _ in 0..10 {
+            // Generated Input Embeddings - Learned - seequence x embedding_size
+            let token_embeddings =  self.embeddings.embed_tokens(&tokenized);
 
-        // Output Projection - Learned - sequence x vocab_size
-        let logits  = self.output_projection.forward(&output);
+            // Transformer Block - Learned - sequence x hidden_size
+            let output = self.transformer_block.forward(&token_embeddings);
 
-        // Softmax - convert activiations of each token to a probability distribution over the vocabulary
-        let probs = Self::softmax(&logits);
+            // Output Projection - Learned - sequence x vocab_size
+            let logits  = self.output_projection.forward(&output);
 
-        // Greedy Decode - Choose the highest probability token for each position
-        let tokens = Self::greedy_decode(&probs);
+            // Softmax - convert activiations of each token to a probability distribution over the vocabulary
+            let probs = Self::softmax(&logits); // sequence x vocab_size
+
+            // Greedy Decode - Choose the highest probability token for each position
+            let tokens = Self::greedy_decode(&probs);
+
+            let next_token = tokens[tokens.len() - 1];
+
+            output_tokens.push(next_token);
+            tokenized.push(next_token);
+
+            if next_token == self.vocab.encode("</s>").unwrap() { break; }
+        }
 
         // Convert token_ids to strings
-        let token_strs = tokens.iter().map(|t| self.vocab.decode[t].clone()).collect::<Vec<String>>();
+        let token_strs = output_tokens.iter().map(|t| self.vocab.decode[t].clone()).collect::<Vec<String>>();
 
         token_strs.join(" ")
     }
 
-    pub fn tokenize(&self, text: &str) -> Vec<String> {
-        text.split_whitespace().map(|s| s.to_string()).collect()
-    }
+    pub fn tokenize(&self, text: &str) -> Vec<usize> {
+        let split = text.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
 
-    pub fn embed(&self, text: &str) -> Array2<f32> {
-        let tokenized = self.tokenize(text);
-        println!("tokenized: {:?}", tokenized);
-        
-        let tokens = tokenized
+        let tokens = split
             .iter()
             .filter_map(|c| self.vocab.encode(&c.to_string()))
             .collect::<Vec<usize>>();
-    
-        println!("tokens: {:?}", tokens);
-        self.embeddings.embed_tokens(&tokens)
+
+        tokens
     }
 
     fn softmax(logits: &Array2<f32>) -> Array2<f32> {
@@ -102,7 +110,7 @@ impl LLM {
                 .map(|(index, _)| index)
                 .unwrap()
         }).to_vec()
-    }
+    }       
 }
 
 pub struct LayerNorm {
