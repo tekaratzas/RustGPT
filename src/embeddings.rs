@@ -1,4 +1,4 @@
-use ndarray::{s, Array2, Axis};
+use ndarray::{s, Array2};
 use rand::prelude::*;
 use crate::{vocab::Vocab, EMBEDDING_DIM, MAX_SEQ_LEN};
 

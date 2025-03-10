@@ -2,7 +2,6 @@ use std::collections::HashMap;
 pub struct Vocab {
     pub encode: HashMap<String, usize>,
     pub decode: HashMap<usize, String>,
-    pub vocab_size: usize,
 }
 
 impl Default for Vocab {
@@ -21,7 +20,7 @@ impl Vocab {
             decode.insert(i, word.to_string());
         }
 
-        Vocab { encode, decode, vocab_size: words.len() }
+        Vocab { encode, decode }
     }
 
     /// Convert a word to its token index
