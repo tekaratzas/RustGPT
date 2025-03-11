@@ -27,7 +27,7 @@ pub struct LLM {
 impl Default for LLM {
     fn default() -> Self {
         let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-        let output_projection = OutputProjection::new(EMBEDDING_DIM, Vocab::words().len());
+        let output_projection = OutputProjection::new(EMBEDDING_DIM, Vocab::default_words().len());
         Self {
             embeddings: Embeddings::default(),
             vocab: Vocab::default(),
@@ -36,14 +36,26 @@ impl Default for LLM {
         }
     }
 }
+
 impl LLM {
-    // TODO: Make this autoregressive
+    pub fn new(vocab: Vocab) -> Self {
+        let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+        let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
+        Self {
+            embeddings: Embeddings::new(vocab.clone()),
+            vocab,
+            output_projection,
+            transformer_block,
+        }
+    }
+}
+impl LLM {
     pub fn predict(&self, text: &str) -> String {
         // Tokenize the input text
         let mut tokenized = self.tokenize(text);
         let mut output_tokens: Vec<usize> = Vec::new();
 
-        for _ in 0..10 {
+        for _ in 0..self.vocab.words.len()-1 {
             // Generated Input Embeddings - Learned - seequence x embedding_size
             let token_embeddings =  self.embeddings.embed_tokens(&tokenized);
 
@@ -73,14 +85,44 @@ impl LLM {
         token_strs.join(" ")
     }
 
+    fn train(data: Vec<(Vec<usize>, Vec<usize>)>, epochs: usize, lr: f32) {
+
+    }
+
     pub fn tokenize(&self, text: &str) -> Vec<usize> {
-        let split = text.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
-
-        let tokens = split
-            .iter()
-            .filter_map(|c| self.vocab.encode(&c.to_string()))
-            .collect::<Vec<usize>>();
-
+        // Split by whitespace first
+        let mut tokens = Vec::new();
+        
+        for word in text.split_whitespace() {
+            let mut current_word = String::new();
+            
+            for c in word.chars() {
+                if c.is_ascii_punctuation() {
+                    // If we have a word before the punctuation, add it
+                    if !current_word.is_empty() {
+                        if let Some(token_id) = self.vocab.encode(&current_word) {
+                            tokens.push(token_id);
+                        }
+                        current_word.clear();
+                    }
+                    
+                    // Add the punctuation as its own token
+                    if let Some(token_id) = self.vocab.encode(&c.to_string()) {
+                        tokens.push(token_id);
+                    }
+                } else {
+                    current_word.push(c);
+                }
+            }
+            
+            // Add any remaining word
+            if !current_word.is_empty() {
+                if let Some(token_id) = self.vocab.encode(&current_word) {
+                    tokens.push(token_id);
+                }
+            }
+        }
+        
         tokens
     }
 

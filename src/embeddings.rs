@@ -10,13 +10,20 @@ pub struct Embeddings {
 impl Default for Embeddings { 
     fn default() -> Self {
         Self { 
-            token_embeddings: Self::init_embeddings(Vocab::words().len(), EMBEDDING_DIM),
+            token_embeddings: Self::init_embeddings(Vocab::default_words().len(), EMBEDDING_DIM),
             positional_embeddings: Self::init_positional_embeddings(MAX_SEQ_LEN, EMBEDDING_DIM),
          }
     }
 }
 
 impl Embeddings {
+
+    pub fn new(vocab: Vocab) -> Self {
+        Self {
+            token_embeddings: Self::init_embeddings(vocab.words.len(), EMBEDDING_DIM),
+            positional_embeddings: Self::init_positional_embeddings(MAX_SEQ_LEN, EMBEDDING_DIM),
+        }
+    }
 
     fn init_embeddings(vocab_size: usize, embedding_dim: usize) -> Array2<f32> {
         let mut rng = rand::rng();
