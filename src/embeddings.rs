@@ -44,7 +44,8 @@ impl Embeddings {
     }
 
     fn get_positional_embeddings(positional_encodings: &Array2<f32>, seq_len: usize) -> Array2<f32> {
-        positional_encodings.slice(s![0..seq_len, ..]).to_owned()
+        let safe_seq_len = std::cmp::min(seq_len, positional_encodings.shape()[0]);
+        positional_encodings.slice(s![0..safe_seq_len, ..]).to_owned()
     }
 
     pub fn embed_tokens(

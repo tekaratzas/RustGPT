@@ -9,7 +9,8 @@ mod transformer;
 mod feed_forward;
 mod self_attention;
 mod output_projection;
-// Constants
+
+// Use the constants from lib.rs
 const MAX_SEQ_LEN: usize = 20;
 const EMBEDDING_DIM: usize = 4;
 const HIDDEN_DIM: usize = 4;

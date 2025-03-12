@@ -5,6 +5,7 @@ use crate::Vocab;
 use crate::output_projection::OutputProjection;
 use crate::EMBEDDING_DIM;
 use crate::HIDDEN_DIM;
+use crate::MAX_SEQ_LEN;
 
 pub trait Layer {
     fn forward(&self, input: &Array2<f32>) -> Array2<f32>;
@@ -55,7 +56,15 @@ impl LLM {
         let mut tokenized = self.tokenize(text);
         let mut output_tokens: Vec<usize> = Vec::new();
 
-        for _ in 0..self.vocab.words.len()-1 {
+        let input_len = tokenized.len();
+                
+        for _ in 0..MAX_SEQ_LEN-input_len {
+            // Check if we're approaching the maximum sequence length
+            if output_tokens.len() >= MAX_SEQ_LEN - 1 {
+                break;
+            }
+            
+            println!("tokenized length: {:?}", tokenized.len());
             // Generated Input Embeddings - Learned - seequence x embedding_size
             let token_embeddings =  self.embeddings.embed_tokens(&tokenized);
 

@@ -1,7 +1,9 @@
 use crate::EMBEDDING_DIM;
 use ndarray::Array2;
 use rand::prelude::*;
+use rand::thread_rng;
 use crate::llm::Layer;
+use std::f32;
 
 pub struct SelfAttention {
     pub embedding_dim: usize,
@@ -24,7 +26,6 @@ impl SelfAttention {
         let mut rng = rand::rng();
         SelfAttention {
             embedding_dim,
-            //num_heads: 1,
             w_q: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
             w_k: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
             w_v: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
