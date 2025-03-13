@@ -11,7 +11,7 @@ mod self_attention;
 mod output_projection;
 
 // Use the constants from lib.rs
-const MAX_SEQ_LEN: usize = 20;
+const MAX_SEQ_LEN: usize = 40;
 const EMBEDDING_DIM: usize = 4;
 const HIDDEN_DIM: usize = 4;
 
@@ -26,7 +26,7 @@ fn main() {
     vocab_set.insert("</s>".to_string());
     
     let training_data = vec![
-        ("hi how are </s>", "I'm doing well, how about you? </s>"),
+        ("hi how are you </s>", "I'm doing well, how about you? </s>"),
         ("hello how are </s>", "I'm great! How's your day? </s>"),
         ("hi there friend </s>", "Hey! It's nice to see you. </s>"),
         ("good morning how </s>", "Good morning! How's your day so far? </s>"),
@@ -71,6 +71,8 @@ fn main() {
     let vocab = Vocab::new(vocab_words_refs);
 
     let llm = LLM::new(vocab);
+
+    llm.train(training_data, 100, 0.01);
 
     let result = llm.predict(&string);
     println!("output of LLM: {}", result);

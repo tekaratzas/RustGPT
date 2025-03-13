@@ -50,8 +50,17 @@ impl LLM {
         }
     }
 }
+
 impl LLM {
     pub fn predict(&self, text: &str) -> String {
+        let output_tokens = self.forward(text);
+        // Convert token_ids to strings
+        let token_strs = output_tokens.iter().map(|t| self.vocab.decode[t].clone()).collect::<Vec<String>>();
+
+        token_strs.join(" ")
+    }
+
+    fn forward(&self, text: &str) -> Vec<usize> {
         // Tokenize the input text
         let mut tokenized = self.tokenize(text);
         let mut output_tokens: Vec<usize> = Vec::new();
@@ -63,17 +72,13 @@ impl LLM {
             if output_tokens.len() >= MAX_SEQ_LEN - 1 {
                 break;
             }
-            
-            println!("tokenized length: {:?}", tokenized.len());
+
             // Generated Input Embeddings - Learned - seequence x embedding_size
             let token_embeddings =  self.embeddings.embed_tokens(&tokenized);
-
             // Transformer Block - Learned - sequence x hidden_size
             let output = self.transformer_block.forward(&token_embeddings);
-
             // Output Projection - Learned - sequence x vocab_size
-            let logits  = self.output_projection.forward(&output);
-
+            let logits = self.output_projection.forward(&output);
             // Softmax - convert activiations of each token to a probability distribution over the vocabulary
             let probs = Self::softmax(&logits); // sequence x vocab_size
 
@@ -88,14 +93,44 @@ impl LLM {
             if next_token == self.vocab.encode("</s>").unwrap() { break; }
         }
 
-        // Convert token_ids to strings
-        let token_strs = output_tokens.iter().map(|t| self.vocab.decode[t].clone()).collect::<Vec<String>>();
-
-        token_strs.join(" ")
+        output_tokens
     }
 
-    fn train(data: Vec<(Vec<usize>, Vec<usize>)>, epochs: usize, lr: f32) {
+    pub fn train(&self, data: Vec<(&str, &str)>, epochs: usize, lr: f32) {
+        println!("vocab size: {}", self.vocab.words.len());
+        let tokenized_data = data
+            .iter()
+            .map(|(input, target)| (self.tokenize(input), self.tokenize(target)))
+            .collect::<Vec<(Vec<usize>, Vec<usize>)>>();
 
+        for epoch in 0..epochs {
+            let mut total_loss = 0.0;
+            for (input, target) in &tokenized_data {
+                let mut tokenized = input.clone(); // Start with input tokens
+                let mut loss = 0.0;
+
+                for &target in target {
+                    let token_embeddings = self.embeddings.embed_tokens(&tokenized);
+                    let output = self.transformer_block.forward(&token_embeddings);
+                    let logits = self.output_projection.forward(&output);
+                    let probs = Self::softmax(&logits);
+
+                    let last_index = tokenized.len() - 1;
+                    loss += Self::cross_entropy_loss_step(&probs.row(last_index).to_vec(), target);
+
+                    // TODO: Calculate gradients, apply gradients, update parameters
+
+                    let next_token = Self::greedy_decode(&probs)[last_index]; // Get last token's prediction
+                    tokenized.push(next_token);
+
+                    if next_token == self.vocab.encode("</s>").unwrap() { break; }
+                }
+
+                total_loss += loss;
+            }
+            
+            println!("Epoch {}: Loss = {:.4}", epoch, total_loss / tokenized_data.len() as f32);
+        }
     }
 
     pub fn tokenize(&self, text: &str) -> Vec<usize> {
@@ -161,7 +196,19 @@ impl LLM {
                 .map(|(index, _)| index)
                 .unwrap()
         }).to_vec()
-    }       
+    } 
+
+    fn cross_entropy_loss_step(probs: &Vec<f32>, target: usize) -> f32 {
+        -probs[target].ln()
+    }
+
+    fn compute_gradients(probs: &Array2<f32>, targets: &[usize]) -> Array2<f32> {
+        let mut grads = probs.clone();
+        for (i, &target) in targets.iter().enumerate() {
+            grads[[i, target]] -= 1.0; // Softmax gradient (predicted - actual)
+        }
+        grads / targets.len() as f32
+    }
 }
 
 pub struct LayerNorm {

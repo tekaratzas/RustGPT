@@ -44,15 +44,13 @@ impl Embeddings {
     }
 
     fn get_positional_embeddings(positional_encodings: &Array2<f32>, seq_len: usize) -> Array2<f32> {
-        let safe_seq_len = std::cmp::min(seq_len, positional_encodings.shape()[0]);
-        positional_encodings.slice(s![0..safe_seq_len, ..]).to_owned()
+        positional_encodings.slice(s![0..seq_len, ..]).to_owned()
     }
 
     pub fn embed_tokens(
         &self,
         token_ids: &[usize]
     ) -> Array2<f32> {
-        println!("token_ids: {:?}", token_ids);
         let token_embeds = Self::get_token_embeddings(&self.token_embeddings, token_ids);
         let position_embeds = Self::get_positional_embeddings(&self.positional_embeddings, token_ids.len());
         token_embeds + position_embeds // Element-wise sum

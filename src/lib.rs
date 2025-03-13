@@ -14,6 +14,6 @@ pub use llm::Layer;
 pub use llm::LayerNorm;
 
 // Constants
-pub const MAX_SEQ_LEN: usize = 20;
+pub const MAX_SEQ_LEN: usize = 40;
 pub const EMBEDDING_DIM: usize = 4;
 pub const HIDDEN_DIM: usize = 4; 
