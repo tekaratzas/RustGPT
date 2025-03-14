@@ -18,7 +18,7 @@ const HIDDEN_DIM: usize = 4;
 
 fn main() {
     // Mock input
-    let string = String::from("hello world </s>");
+    let string = String::from("hi how are you </s>");
 
     // Extract all unique words from training data to create vocabulary
     let mut vocab_set = std::collections::HashSet::new();
@@ -73,8 +73,9 @@ fn main() {
 
     let mut llm = LLM::new(vocab);
 
+    println!("Before Training: {}", llm.predict(&string));
     llm.train(training_data, 100, 0.01);
 
     let result = llm.predict(&string);
-    println!("output of LLM: {}", result);
+    println!("After Training: {}", result);
 }

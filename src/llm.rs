@@ -147,6 +147,14 @@ impl LLM {
         let mut tokens = Vec::new();
         
         for word in text.split_whitespace() {
+            // Special case for end token
+            if word == "</s>" {
+                if let Some(token_id) = self.vocab.encode(word) {
+                    tokens.push(token_id);
+                }
+                continue;
+            }
+            
             let mut current_word = String::new();
             
             for c in word.chars() {
