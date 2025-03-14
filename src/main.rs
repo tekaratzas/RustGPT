@@ -71,7 +71,7 @@ fn main() {
     let vocab_words_refs: Vec<&str> = vocab_words.iter().map(|s| s.as_str()).collect();
     let vocab = Vocab::new(vocab_words_refs);
 
-    let llm = LLM::new(vocab);
+    let mut llm = LLM::new(vocab);
 
     llm.train(training_data, 100, 0.01);
 

@@ -97,7 +97,7 @@ impl LLM {
         output_tokens
     }
 
-    pub fn train(&self, data: Vec<(&str, &str)>, epochs: usize, lr: f32) {
+    pub fn train(&mut self, data: Vec<(&str, &str)>, epochs: usize, lr: f32) {
         let mut optimizer_output = Adam::new(self.output_projection.w_out.dim(), lr);
 
         let tokenized_data = data
@@ -118,10 +118,16 @@ impl LLM {
                     let probs = Self::softmax(&logits);
 
                     let last_index = tokenized.len() - 1;
-                    loss += Self::cross_entropy_loss_step(&probs.row(last_index).to_vec(), target);
+                    let hidden_state = output.row(last_index).to_owned().insert_axis(Axis(0)); // Shape: (1, HiddenDimension)
 
-                    let gradient = Self::compute_gradients_step(&probs, target);
-                    optimizer_output.update(&mut self.output_projection.w_out, &gradient);
+                    let last_probs = probs.row(last_index).to_owned().insert_axis(Axis(0));
+                    loss += Self::cross_entropy_loss_step(&last_probs, target);
+
+                    let grads_logits = Self::compute_gradients_step(&last_probs, target); // Shape: (1, VocabSize)
+
+                    let grads_output_projection = Self::compute_gradients_output_projection(&hidden_state, &grads_logits);
+
+                    optimizer_output.update(&mut self.output_projection.w_out, &grads_output_projection);
 
                     let next_token = Self::greedy_decode(&probs)[last_index]; // Get last token's prediction
                     tokenized.push(next_token);
@@ -201,8 +207,9 @@ impl LLM {
         }).to_vec()
     } 
 
-    fn cross_entropy_loss_step(probs: &Vec<f32>, target: usize) -> f32 {
-        -probs[target].ln()
+    fn cross_entropy_loss_step(probs: &Array2<f32>, target: usize) -> f32 {
+        let prob_target = probs[[0, target]]; // Get probability of correct token
+        -prob_target.ln() // Compute negative log-likelihood
     }
 
     fn compute_gradients_step(probs: &Array2<f32>, target: usize) -> Array2<f32> {
@@ -211,6 +218,13 @@ impl LLM {
         grads[[0, target]] -= 1.0; // If prob is 100%, then this becomes 0. Effectively a no-op. if it's 0, then it punishes the model for predicting the incorrrect token.
     
         grads
+    }
+
+    fn compute_gradients_output_projection(
+        hidden_state: &Array2<f32>, // Shape: (1, HiddenDimension)
+        grads_logits: &Array2<f32>, // Shape: (1, VocabSize)
+    ) -> Array2<f32> {
+        hidden_state.t().dot(grads_logits) // Shape: (HiddenDimension, VocabSize)
     }
 }
 
