@@ -5,7 +5,7 @@ pub mod transformer;
 pub mod feed_forward;
 pub mod self_attention;
 pub mod output_projection;
-
+pub mod adam;
 // Re-export key structs for easier access
 pub use vocab::Vocab;
 pub use embeddings::Embeddings;

@@ -2,8 +2,8 @@ use ndarray::Array2;
 use rand::prelude::*;
 
 pub struct OutputProjection {
-    w_out: Array2<f32>, // Weight matrix
-    b_out: Array2<f32>, // Bias vector
+   pub w_out: Array2<f32>, // Weight matrix
+   pub b_out: Array2<f32>, // Bias vector
 }
 
 impl OutputProjection {

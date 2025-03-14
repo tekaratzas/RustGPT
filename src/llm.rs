@@ -6,6 +6,7 @@ use crate::output_projection::OutputProjection;
 use crate::EMBEDDING_DIM;
 use crate::HIDDEN_DIM;
 use crate::MAX_SEQ_LEN;
+use crate::adam::Adam;
 
 pub trait Layer {
     fn forward(&self, input: &Array2<f32>) -> Array2<f32>;
@@ -97,7 +98,8 @@ impl LLM {
     }
 
     pub fn train(&self, data: Vec<(&str, &str)>, epochs: usize, lr: f32) {
-        println!("vocab size: {}", self.vocab.words.len());
+        let mut optimizer_output = Adam::new(self.output_projection.w_out.dim(), lr);
+
         let tokenized_data = data
             .iter()
             .map(|(input, target)| (self.tokenize(input), self.tokenize(target)))
@@ -118,7 +120,8 @@ impl LLM {
                     let last_index = tokenized.len() - 1;
                     loss += Self::cross_entropy_loss_step(&probs.row(last_index).to_vec(), target);
 
-                    // TODO: Calculate gradients, apply gradients, update parameters
+                    let gradient = Self::compute_gradients_step(&probs, target);
+                    optimizer_output.update(&mut self.output_projection.w_out, &gradient);
 
                     let next_token = Self::greedy_decode(&probs)[last_index]; // Get last token's prediction
                     tokenized.push(next_token);
@@ -202,12 +205,12 @@ impl LLM {
         -probs[target].ln()
     }
 
-    fn compute_gradients(probs: &Array2<f32>, targets: &[usize]) -> Array2<f32> {
+    fn compute_gradients_step(probs: &Array2<f32>, target: usize) -> Array2<f32> {
         let mut grads = probs.clone();
-        for (i, &target) in targets.iter().enumerate() {
-            grads[[i, target]] -= 1.0; // Softmax gradient (predicted - actual)
-        }
-        grads / targets.len() as f32
+    
+        grads[[0, target]] -= 1.0; // If prob is 100%, then this becomes 0. Effectively a no-op. if it's 0, then it punishes the model for predicting the incorrrect token.
+    
+        grads
     }
 }
 

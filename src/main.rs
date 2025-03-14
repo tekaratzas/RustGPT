@@ -9,6 +9,7 @@ mod transformer;
 mod feed_forward;
 mod self_attention;
 mod output_projection;
+mod adam;
 
 // Use the constants from lib.rs
 const MAX_SEQ_LEN: usize = 40;
