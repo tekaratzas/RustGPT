@@ -74,7 +74,7 @@ fn main() {
     let mut llm = LLM::new(vocab);
 
     println!("Before Training: {}", llm.predict(&string));
-    llm.train(training_data, 100, 0.01);
+    llm.train(training_data, 100, 0.05);
 
     let result = llm.predict(&string);
     println!("After Training: {}", result);

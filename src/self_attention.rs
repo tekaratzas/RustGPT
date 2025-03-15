@@ -73,4 +73,7 @@ impl Layer for SelfAttention {
         let qkv = self.compute_qkv(input);
         self.attention(&qkv.0, &qkv.1, &qkv.2)
     }
+
+    fn update(&mut self, grads: &Array2<f32>, lr: f32) {
+    }
 }

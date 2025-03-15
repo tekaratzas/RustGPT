@@ -11,6 +11,8 @@ use crate::adam::Adam;
 pub trait Layer {
     fn forward(&self, input: &Array2<f32>) -> Array2<f32>;
 
+    fn update(&mut self, grads: &Array2<f32>, lr: f32);
+
     fn forward_with_residual(&self, input: &Array2<f32>, layer_norm: &LayerNorm) -> Array2<f32> {
         let output = self.forward(input);
         let residual = &output + input;
@@ -98,7 +100,9 @@ impl LLM {
     }
 
     pub fn train(&mut self, data: Vec<(&str, &str)>, epochs: usize, lr: f32) {
-        let mut optimizer_output = Adam::new(self.output_projection.w_out.dim(), lr);
+        // let mut optimizer_output = Adam::new(self.output_projection.w_out.dim(), lr);
+        // let mut optimizer_token_embedding = Adam::new(self.embeddings.token_embeddings.dim(), lr);
+        // let mut optimizer_positional_embedding = Adam::new(self.embeddings.positional_embeddings.dim(), lr);
 
         let tokenized_data = data
             .iter()
@@ -127,7 +131,7 @@ impl LLM {
 
                     let grads_output_projection = Self::compute_gradients_output_projection(&hidden_state, &grads_logits);
 
-                    optimizer_output.update(&mut self.output_projection.w_out, &grads_output_projection);
+                    self.output_projection.update(&grads_output_projection, lr);
 
                     let next_token = Self::greedy_decode(&probs)[last_index]; // Get last token's prediction
                     tokenized.push(next_token);

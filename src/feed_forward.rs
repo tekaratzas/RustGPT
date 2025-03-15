@@ -1,6 +1,6 @@
 use ndarray::Array2;
 use rand::prelude::*;
-use crate::llm::Layer;
+use crate::{adam::Adam, llm::Layer};
 
 pub struct FeedForward {
     w1: Array2<f32>,
@@ -28,6 +28,10 @@ impl FeedForward {
 }
 
 impl Layer for FeedForward {
+    fn update(&mut self, grads: &Array2<f32>, lr: f32) {
+        
+    }
+
     fn forward(&self, input: &Array2<f32>) -> Array2<f32> {
         let hidden = Self::relu(input.dot(&self.w1) + &self.b1);
         hidden.dot(&self.w2) + &self.b2

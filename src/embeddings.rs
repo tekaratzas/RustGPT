@@ -3,8 +3,8 @@ use rand::prelude::*;
 use crate::{vocab::Vocab, EMBEDDING_DIM, MAX_SEQ_LEN};
 
 pub struct Embeddings {
-    token_embeddings: Array2<f32>,
-    positional_embeddings: Array2<f32>,
+    pub token_embeddings: Array2<f32>,
+    pub positional_embeddings: Array2<f32>,
 }
 
 impl Default for Embeddings { 
