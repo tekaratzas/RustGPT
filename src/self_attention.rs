@@ -74,6 +74,7 @@ impl Layer for SelfAttention {
         self.attention(&qkv.0, &qkv.1, &qkv.2)
     }
 
-    fn update(&mut self, grads: &Array2<f32>, lr: f32) {
+    fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
+        Array2::zeros(self.w_q.dim())
     }
 }

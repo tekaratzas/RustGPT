@@ -27,7 +27,9 @@ impl Layer for OutputProjection {
         input.dot(&self.w_out) + &self.b_out
     }
 
-    fn update(&mut self, grads: &Array2<f32>, lr: f32) {
+    fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
         self.optimizer.update(&mut self.w_out, grads, lr);
+
+        Array2::zeros(self.w_out.dim())
     }
 }

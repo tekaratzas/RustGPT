@@ -11,7 +11,7 @@ use crate::adam::Adam;
 pub trait Layer {
     fn forward(&self, input: &Array2<f32>) -> Array2<f32>;
 
-    fn update(&mut self, grads: &Array2<f32>, lr: f32);
+    fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32>;
 
     fn forward_with_residual(&self, input: &Array2<f32>, layer_norm: &LayerNorm) -> Array2<f32> {
         let output = self.forward(input);
@@ -100,10 +100,6 @@ impl LLM {
     }
 
     pub fn train(&mut self, data: Vec<(&str, &str)>, epochs: usize, lr: f32) {
-        // let mut optimizer_output = Adam::new(self.output_projection.w_out.dim(), lr);
-        // let mut optimizer_token_embedding = Adam::new(self.embeddings.token_embeddings.dim(), lr);
-        // let mut optimizer_positional_embedding = Adam::new(self.embeddings.positional_embeddings.dim(), lr);
-
         let tokenized_data = data
             .iter()
             .map(|(input, target)| (self.tokenize(input), self.tokenize(target)))
@@ -131,7 +127,7 @@ impl LLM {
 
                     let grads_output_projection = Self::compute_gradients_output_projection(&hidden_state, &grads_logits);
 
-                    self.output_projection.update(&grads_output_projection, lr);
+                    self.output_projection.backward(&grads_output_projection, lr);
 
                     let next_token = Self::greedy_decode(&probs)[last_index]; // Get last token's prediction
                     tokenized.push(next_token);
@@ -232,11 +228,19 @@ impl LLM {
         grads
     }
 
+    // MARK: - Gradient Calculations
     fn compute_gradients_output_projection(
         hidden_state: &Array2<f32>, // Shape: (1, HiddenDimension)
         grads_logits: &Array2<f32>, // Shape: (1, VocabSize)
     ) -> Array2<f32> {
         hidden_state.t().dot(grads_logits) // Shape: (HiddenDimension, VocabSize)
+    }
+
+    fn compute_attention_gradients(
+        input: &Array2<f32>,
+        grads_output: &Array2<f32>
+    ) -> Array2<f32> {
+        input.t().dot(grads_output) // Compute dW = X^T * dL/dY
     }
 }
 
