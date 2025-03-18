@@ -1,3 +1,4 @@
+use ndarray::Array1;
 use ndarray::{Array2, Axis};
 use crate::transformer::TransformerBlock;
 use crate::Embeddings;
@@ -9,11 +10,11 @@ use crate::MAX_SEQ_LEN;
 use crate::adam::Adam;
 
 pub trait Layer {
-    fn forward(&self, input: &Array2<f32>) -> Array2<f32>;
+    fn forward(&mut self, input: &Array2<f32>) -> Array2<f32>;
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32>;
 
-    fn forward_with_residual(&self, input: &Array2<f32>, layer_norm: &LayerNorm) -> Array2<f32> {
+    fn forward_with_residual(&mut self, input: &Array2<f32>, layer_norm: &LayerNorm) -> Array2<f32> {
         let output = self.forward(input);
         let residual = &output + input;
         layer_norm.normalize(&residual) 
@@ -21,11 +22,12 @@ pub trait Layer {
 }
 
 pub struct LLM {
-    pub embeddings: Embeddings,
+    // pub embeddings: Embeddings,
     pub vocab: Vocab,
+    pub network: Vec<Box<dyn Layer>>,
 
-    output_projection: OutputProjection,
-    transformer_block: TransformerBlock,
+    // output_projection: OutputProjection,
+    // transformer_block: TransformerBlock,
 }
 
 impl Default for LLM {
@@ -33,10 +35,12 @@ impl Default for LLM {
         let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
         let output_projection = OutputProjection::new(EMBEDDING_DIM, Vocab::default_words().len());
         Self {
-            embeddings: Embeddings::default(),
             vocab: Vocab::default(),
-            output_projection,
-            transformer_block,
+            network: vec![
+                Box::new(Embeddings::default()),
+                Box::new(transformer_block),
+                Box::new(output_projection),
+            ],
         }
     }
 }
@@ -45,17 +49,20 @@ impl LLM {
     pub fn new(vocab: Vocab) -> Self {
         let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
         let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
+        let embeddings = Embeddings::new(vocab.clone());
         Self {
-            embeddings: Embeddings::new(vocab.clone()),
             vocab,
-            output_projection,
-            transformer_block,
+            network: vec![
+                Box::new(embeddings),
+                Box::new(transformer_block),
+                Box::new(output_projection),
+            ],
         }
     }
 }
 
 impl LLM {
-    pub fn predict(&self, text: &str) -> String {
+    pub fn predict(&mut self, text: &str) -> String {
         let output_tokens = self.forward(text);
         // Convert token_ids to strings
         let token_strs = output_tokens.iter().map(|t| self.vocab.decode[t].clone()).collect::<Vec<String>>();
@@ -63,7 +70,7 @@ impl LLM {
         token_strs.join(" ")
     }
 
-    fn forward(&self, text: &str) -> Vec<usize> {
+    fn forward(&mut self, text: &str) -> Vec<usize> {
         // Tokenize the input text
         let mut tokenized = self.tokenize(text);
         let mut output_tokens: Vec<usize> = Vec::new();
@@ -71,17 +78,23 @@ impl LLM {
         let input_len = tokenized.len();
                 
         for _ in 0..MAX_SEQ_LEN-input_len {
+            let tokenized_clone = tokenized.clone();
+
             // Check if we're approaching the maximum sequence length
             if output_tokens.len() >= MAX_SEQ_LEN - 1 {
                 break;
             }
 
-            // Generated Input Embeddings - Learned - seequence x embedding_size
-            let token_embeddings =  self.embeddings.embed_tokens(&tokenized);
-            // Transformer Block - Learned - sequence x hidden_size
-            let output = self.transformer_block.forward(&token_embeddings);
-            // Output Projection - Learned - sequence x vocab_size
-            let logits = self.output_projection.forward(&output);
+            let mut input: Array2<f32> = Array2::zeros((1, tokenized_clone.len()));
+            input.row_mut(0).assign(&tokenized_clone.into_iter().map(|x| x as f32).collect::<Array1<f32>>());
+            for layer in &mut self.network {
+                input = layer.forward(&input);
+            }
+
+            println!("Logits: {:?}", input);
+
+            let logits = input;
+
             // Softmax - convert activiations of each token to a probability distribution over the vocabulary
             let probs = Self::softmax(&logits); // sequence x vocab_size
 
@@ -112,24 +125,29 @@ impl LLM {
                 let mut loss = 0.0;
 
                 for &target in target {
-                    let token_embeddings = self.embeddings.embed_tokens(&tokenized);
-                    let output = self.transformer_block.forward(&token_embeddings);
-                    let logits = self.output_projection.forward(&output);
+
+                    // Forward pass
+                    let tokenized_clone = tokenized.clone();
+                    let mut input: Array2<f32> = Array2::zeros((1, tokenized_clone.len()));
+                    input.row_mut(0).assign(&tokenized_clone.into_iter().map(|x| x as f32).collect::<Array1<f32>>());
+                    for layer in &mut self.network {
+                        input = layer.forward(&input);
+                    }
+
+                    let logits = input;
                     let probs = Self::softmax(&logits);
 
                     let last_index = tokenized.len() - 1;
-                    let hidden_state = output.row(last_index).to_owned().insert_axis(Axis(0)); // Shape: (1, HiddenDimension)
-
                     let last_probs = probs.row(last_index).to_owned().insert_axis(Axis(0));
                     loss += Self::cross_entropy_loss_step(&last_probs, target);
 
-                    let grads_logits = Self::compute_gradients_step(&last_probs, target); // Shape: (1, VocabSize)
+                    // Backward pass
+                    let mut grads_output = Self::compute_gradients_step(&last_probs, target);
+                    for layer in self.network.iter_mut().rev() {
+                        grads_output = layer.backward(&grads_output, lr);
+                    }
 
-                    let grads_output_projection = Self::compute_gradients_output_projection(&hidden_state, &grads_logits);
-
-                    self.output_projection.backward(&grads_output_projection, lr);
-
-                    let next_token = Self::greedy_decode(&probs)[last_index]; // Get last token's prediction
+                    let next_token = Self::greedy_decode(&probs)[last_index];
                     tokenized.push(next_token);
 
                     if next_token == self.vocab.encode("</s>").unwrap() { break; }

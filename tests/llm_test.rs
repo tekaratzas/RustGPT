@@ -18,7 +18,7 @@ fn test_llm_tokenize() {
 #[test]
 fn test_llm_predict() {
     let vocab = Vocab::default();
-    let llm = LLM::new(vocab);
+    let mut llm = LLM::new(vocab);
     
     // Test prediction
     let result = llm.predict("hello world");

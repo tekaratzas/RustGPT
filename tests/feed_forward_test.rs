@@ -11,7 +11,7 @@ fn test_feed_forward_creation() {
 #[test]
 fn test_feed_forward_forward() {
     // Create feed-forward module
-    let feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);
+    let mut feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);
     
     // Create input tensor (batch_size=1, seq_len=3, embedding_dim=EMBEDDING_DIM)
     let input = Array2::ones((3, EMBEDDING_DIM));
@@ -26,7 +26,7 @@ fn test_feed_forward_forward() {
 #[test]
 fn test_feed_forward_with_different_sequence_lengths() {
     // Create feed-forward module
-    let feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);
+    let mut feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);
     
     // Test with different sequence lengths
     for seq_len in 1..5 {

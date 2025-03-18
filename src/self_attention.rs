@@ -69,7 +69,7 @@ impl SelfAttention {
 }
 
 impl Layer for SelfAttention {
-    fn forward(&self, input: &Array2<f32>) -> Array2<f32> {
+    fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
         let qkv = self.compute_qkv(input);
         self.attention(&qkv.0, &qkv.1, &qkv.2)
     }

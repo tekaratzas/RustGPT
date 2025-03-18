@@ -16,19 +16,18 @@ impl OutputProjection {
         OutputProjection {
             w_out: Array2::from_shape_fn((embedding_dim, vocab_size), |_| rng.random_range(-0.1..0.1)),
             b_out: Array2::zeros((1, vocab_size)),
-            optimizer: Adam::new((embedding_dim, vocab_size)),
+            optimizer: Adam::new((embedding_dim, vocab_size), 0.001),
         }
     }
 }
 
 impl Layer for OutputProjection {
     /// Forward pass: project embeddings to vocab logits
-    fn forward(&self, input: &Array2<f32>) -> Array2<f32> {
+    fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
         input.dot(&self.w_out) + &self.b_out
     }
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
-        self.optimizer.update(&mut self.w_out, grads, lr);
 
         Array2::zeros(self.w_out.dim())
     }

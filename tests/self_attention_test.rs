@@ -11,7 +11,7 @@ fn test_self_attention_creation() {
 #[test]
 fn test_self_attention_forward() {
     // Create self-attention module
-    let self_attention = SelfAttention::new(EMBEDDING_DIM);
+    let mut self_attention = SelfAttention::new(EMBEDDING_DIM);
     
     // Create input tensor (batch_size=1, seq_len=3, embedding_dim=EMBEDDING_DIM)
     let input = Array2::ones((3, EMBEDDING_DIM));
@@ -26,7 +26,7 @@ fn test_self_attention_forward() {
 #[test]
 fn test_self_attention_with_different_sequence_lengths() {
     // Create self-attention module
-    let self_attention = SelfAttention::new(EMBEDDING_DIM);
+    let mut self_attention = SelfAttention::new(EMBEDDING_DIM);
     
     // Test with different sequence lengths
     for seq_len in 1..5 {

@@ -1,6 +1,6 @@
 use ndarray::{s, Array2};
 use rand::prelude::*;
-use crate::{vocab::Vocab, EMBEDDING_DIM, MAX_SEQ_LEN};
+use crate::{vocab::Vocab, llm::Layer, EMBEDDING_DIM, MAX_SEQ_LEN};
 
 pub struct Embeddings {
     pub token_embeddings: Array2<f32>,
@@ -56,3 +56,18 @@ impl Embeddings {
         token_embeds + position_embeds // Element-wise sum
     }
 }
+
+impl Layer for Embeddings {
+    fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
+        println!("input: {:?}", input);
+        let token_ids: Vec<usize> = input.iter().map(|&x| x as usize).collect();
+        println!("token_ids: {:?}", token_ids);
+        self.embed_tokens(&token_ids)
+    }
+
+    fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
+        let grad_token_embeddings = grads.dot(&self.positional_embeddings.t());
+        let grad_positional_embeddings = grads.t().dot(&self.token_embeddings);
+        grad_token_embeddings + grad_positional_embeddings
+    }
+}   
