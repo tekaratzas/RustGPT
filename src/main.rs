@@ -1,4 +1,6 @@
 use embeddings::Embeddings;
+use output_projection::OutputProjection;
+use transformer::TransformerBlock;
 use llm::LLM;
 use vocab::Vocab;
 
@@ -71,7 +73,14 @@ fn main() {
     let vocab_words_refs: Vec<&str> = vocab_words.iter().map(|s| s.as_str()).collect();
     let vocab = Vocab::new(vocab_words_refs);
 
-    let mut llm = LLM::new(vocab);
+    let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+    let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
+    let embeddings = Embeddings::new(vocab.clone());
+    let mut llm = LLM::new(vocab, vec![
+        Box::new(embeddings),
+        Box::new(transformer_block),
+        Box::new(output_projection),
+    ]);
 
     println!("Before Training: {}", llm.predict(&string));
     llm.train(training_data, 100, 0.05);

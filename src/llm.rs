@@ -7,7 +7,6 @@ use crate::output_projection::OutputProjection;
 use crate::EMBEDDING_DIM;
 use crate::HIDDEN_DIM;
 use crate::MAX_SEQ_LEN;
-use crate::adam::Adam;
 
 pub trait Layer {
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32>;
@@ -22,12 +21,8 @@ pub trait Layer {
 }
 
 pub struct LLM {
-    // pub embeddings: Embeddings,
     pub vocab: Vocab,
     pub network: Vec<Box<dyn Layer>>,
-
-    // output_projection: OutputProjection,
-    // transformer_block: TransformerBlock,
 }
 
 impl Default for LLM {
@@ -46,17 +41,10 @@ impl Default for LLM {
 }
 
 impl LLM {
-    pub fn new(vocab: Vocab) -> Self {
-        let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-        let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
-        let embeddings = Embeddings::new(vocab.clone());
+    pub fn new(vocab: Vocab, network: Vec<Box<dyn Layer>>) -> Self {
         Self {
             vocab,
-            network: vec![
-                Box::new(embeddings),
-                Box::new(transformer_block),
-                Box::new(output_projection),
-            ],
+            network
         }
     }
 }
@@ -64,6 +52,7 @@ impl LLM {
 impl LLM {
     pub fn predict(&mut self, text: &str) -> String {
         let output_tokens = self.forward(text);
+
         // Convert token_ids to strings
         let token_strs = output_tokens.iter().map(|t| self.vocab.decode[t].clone()).collect::<Vec<String>>();
 
@@ -91,8 +80,6 @@ impl LLM {
                 input = layer.forward(&input);
             }
 
-            println!("Logits: {:?}", input);
-
             let logits = input;
 
             // Softmax - convert activiations of each token to a probability distribution over the vocabulary
@@ -102,6 +89,8 @@ impl LLM {
             let tokens = Self::greedy_decode(&probs);
 
             let next_token = tokens[tokens.len() - 1];
+
+            println!("Next token: {}", next_token);
 
             output_tokens.push(next_token);
             tokenized.push(next_token);
@@ -244,21 +233,6 @@ impl LLM {
         grads[[0, target]] -= 1.0; // If prob is 100%, then this becomes 0. Effectively a no-op. if it's 0, then it punishes the model for predicting the incorrrect token.
     
         grads
-    }
-
-    // MARK: - Gradient Calculations
-    fn compute_gradients_output_projection(
-        hidden_state: &Array2<f32>, // Shape: (1, HiddenDimension)
-        grads_logits: &Array2<f32>, // Shape: (1, VocabSize)
-    ) -> Array2<f32> {
-        hidden_state.t().dot(grads_logits) // Shape: (HiddenDimension, VocabSize)
-    }
-
-    fn compute_attention_gradients(
-        input: &Array2<f32>,
-        grads_output: &Array2<f32>
-    ) -> Array2<f32> {
-        input.t().dot(grads_output) // Compute dW = X^T * dL/dY
     }
 }
 
