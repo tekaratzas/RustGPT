@@ -1,18 +1,27 @@
 use llm::{LLM, Vocab, Layer};
 use ndarray::{array, Array2};
 
-struct TestLayer {
+struct TestOutputProjectionLayer {
     pub weights: Array2<f32>,
     pub bias: Array2<f32>,
     pub cache_weights: Option<Array2<f32>>,
     pub cache_bias: Option<Array2<f32>>,
+    pub loop_count: usize,
 }
 
-impl Layer for TestLayer {
+impl Layer for TestOutputProjectionLayer {
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
         let input_width = input.shape()[1];
-        let mock_output = Array2::ones((1, input_width));
+        let mut mock_output = Array2::zeros((1, input_width));
 
+        // Force stop after 5 loops to match expected output
+        if self.loop_count >= 5 {
+            mock_output[[0, 5]] = 1.0;
+        } else if input_width > 0 {
+            mock_output[[0, 0]] = 1.0;
+        }
+
+        self.loop_count += 1;
         mock_output
     }
 
@@ -21,13 +30,14 @@ impl Layer for TestLayer {
     }
 }
 
-impl TestLayer {
-    pub fn new() -> Self {
-        TestLayer {
-            weights: Array2::zeros((1, 1)),
-            bias: Array2::zeros((1, 1)),
+impl TestOutputProjectionLayer {
+    pub fn new(vocab_size: usize) -> Self {
+        TestOutputProjectionLayer {
+            weights: Array2::zeros((2, vocab_size)),
+            bias: Array2::zeros((1, vocab_size)),
             cache_weights: None,
             cache_bias: None,
+            loop_count: 0,
         }
     }
 }
@@ -35,8 +45,9 @@ impl TestLayer {
 #[test]
 fn test_llm_tokenize() {
     let vocab = Vocab::default();
+    let vocab_size = vocab.encode.len();
     let llm = LLM::new(vocab, vec![
-        Box::new(TestLayer::new())
+        Box::new(TestOutputProjectionLayer::new(vocab_size))
     ]);
     
     // Test tokenization
@@ -52,15 +63,21 @@ fn test_llm_tokenize() {
 #[test]
 fn test_llm_predict() {
     let vocab = Vocab::default();
+    let vocab_size = vocab.encode.len();
     let mut llm = LLM::new(vocab.clone(), vec![
-        Box::new(TestLayer::new())
+        Box::new(TestOutputProjectionLayer::new(vocab_size))
     ]);
     
     // Test prediction
-    let result = llm.predict("hello world");
+    let input_text = "hello world this is rust";
+    let input_tokens = llm.tokenize(input_text);
+    let result = llm.predict(input_text);
     assert!(!result.is_empty());
 
-    let expected_tokens = vec![1, 1, 1, 1].iter().map(|x| vocab.decode[x].clone()).collect::<Vec<String>>();
+    // Build expected output
+    let mut expected_tokens = vec![0; input_tokens.len()].iter().map(|x| vocab.decode[x].clone()).collect::<Vec<String>>();
+    expected_tokens.push("</s>".to_string());
     let expected_output = expected_tokens.join(" ");
+
     assert_eq!(result, expected_output);    
 } 

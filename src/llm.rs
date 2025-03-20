@@ -81,16 +81,15 @@ impl LLM {
             }
 
             let logits = input;
+            let last_logit = logits.row(logits.shape()[0] - 1).to_owned().insert_axis(Axis(0));
 
             // Softmax - convert activiations of each token to a probability distribution over the vocabulary
-            let probs = Self::softmax(&logits); // sequence x vocab_size
+            let probs = Self::softmax(&last_logit); // 1 x vocab_size
 
             // Greedy Decode - Choose the highest probability token for each position
             let tokens = Self::greedy_decode(&probs);
 
             let next_token = tokens[tokens.len() - 1];
-
-            println!("Next token: {}", next_token);
 
             output_tokens.push(next_token);
             tokenized.push(next_token);
@@ -194,7 +193,7 @@ impl LLM {
         tokens
     }
 
-    fn softmax(logits: &Array2<f32>) -> Array2<f32> {
+    fn softmax(logits: &Array2<f32>) -> Array2<f32> { // logits is 1 x vocab_size
         let mut result = logits.clone();
         
         // Apply softmax row-wise
