@@ -4,6 +4,7 @@ use llm::feed_forward::FeedForward;
 
 #[test]
 fn test_feed_forward_creation() {
+    println!("EMBEDDING_DIM: {}", EMBEDDING_DIM);
     // Create feed-forward module
     let feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);
 }
@@ -40,3 +41,23 @@ fn test_feed_forward_with_different_sequence_lengths() {
         assert_eq!(output.shape(), [seq_len, EMBEDDING_DIM]);
     }
 } 
+
+#[test]
+fn test_feed_forward_and_backward() {
+    // Create feed-forward module
+    let mut feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);
+    
+    // Create input tensor (batch_size=1, seq_len=3, embedding_dim=EMBEDDING_DIM)
+    let input = Array2::ones((3, EMBEDDING_DIM));
+    
+    // Test forward pass
+    let output = feed_forward.forward(&input);
+
+    let grads = Array2::ones((3, HIDDEN_DIM));
+
+    // Test backward pass
+    let grad_input = feed_forward.backward(&grads, 0.01);
+
+    // Make sure backward pass modifies the input
+    assert_ne!(output, grad_input);
+}

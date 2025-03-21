@@ -106,6 +106,8 @@ impl LLM {
             .map(|(input, target)| (self.tokenize(input), self.tokenize(target)))
             .collect::<Vec<(Vec<usize>, Vec<usize>)>>();
 
+        println!("Tokenized data: {:?}", tokenized_data);
+
         for epoch in 0..epochs {
             let mut total_loss = 0.0;
             for (input, target) in &tokenized_data {
@@ -118,15 +120,15 @@ impl LLM {
                     let tokenized_clone = tokenized.clone();
                     let mut input: Array2<f32> = Array2::zeros((1, tokenized_clone.len()));
                     input.row_mut(0).assign(&tokenized_clone.into_iter().map(|x| x as f32).collect::<Array1<f32>>());
+
                     for layer in &mut self.network {
                         input = layer.forward(&input);
                     }
 
                     let logits = input;
-                    let probs = Self::softmax(&logits);
+                    let last_logit = logits.row(logits.shape()[0] - 1).to_owned().insert_axis(Axis(0));
+                    let last_probs = Self::softmax(&last_logit);
 
-                    let last_index = tokenized.len() - 1;
-                    let last_probs = probs.row(last_index).to_owned().insert_axis(Axis(0));
                     loss += Self::cross_entropy_loss_step(&last_probs, target);
 
                     // Backward pass
@@ -135,7 +137,9 @@ impl LLM {
                         grads_output = layer.backward(&grads_output, lr);
                     }
 
-                    let next_token = Self::greedy_decode(&probs)[last_index];
+                    let tokens = Self::greedy_decode(&last_probs);
+                    let next_token = tokens[tokens.len() - 1];
+
                     tokenized.push(next_token);
 
                     if next_token == self.vocab.encode("</s>").unwrap() { break; }
