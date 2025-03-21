@@ -1,4 +1,4 @@
-use llm::{Embeddings, Vocab, EMBEDDING_DIM, MAX_SEQ_LEN};
+use llm::{Embeddings, Vocab, EMBEDDING_DIM, MAX_SEQ_LEN, Layer};
 use ndarray::Array2;
 
 #[test]
@@ -74,3 +74,25 @@ fn test_max_sequence_length() {
     // Check dimensions
     assert_eq!(embedded.shape(), [MAX_SEQ_LEN, EMBEDDING_DIM]);
 } 
+
+#[test]
+fn test_embedding_backwards() {
+    // Create vocab and embeddings
+    let vocab = Vocab::default();
+    let mut embeddings = Embeddings::new(vocab);
+
+    let token_ids = Array2::from_shape_vec((1, 5), vec![0., 1., 2., 3., 4.]).unwrap();
+    let embedded = embeddings.forward(&token_ids);
+
+    let pre_train_token_embeddings = embeddings.token_embeddings.clone();
+    let pre_train_position_embeddings = embeddings.positional_embeddings.clone();
+
+    let grads = Array2::ones((5, EMBEDDING_DIM));
+    let grad_embedded = embeddings.backward(&grads, 0.01);
+
+    let post_train_token_embeddings = embeddings.token_embeddings.clone();
+    let post_train_position_embeddings = embeddings.positional_embeddings.clone();
+
+    assert_ne!(pre_train_token_embeddings, post_train_token_embeddings);
+    assert_ne!(pre_train_position_embeddings, post_train_position_embeddings);
+}

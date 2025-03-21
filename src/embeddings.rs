@@ -1,10 +1,13 @@
 use ndarray::{s, Array2};
 use rand::prelude::*;
-use crate::{vocab::Vocab, llm::Layer, EMBEDDING_DIM, MAX_SEQ_LEN};
+use crate::{vocab::Vocab, llm::Layer, EMBEDDING_DIM, MAX_SEQ_LEN, adam::Adam};
 
 pub struct Embeddings {
     pub token_embeddings: Array2<f32>,
     pub positional_embeddings: Array2<f32>,
+    pub cached_input: Option<Array2<f32>>,
+    pub token_optimizer: Adam,
+    pub positional_optimizer: Adam,
 }
 
 impl Default for Embeddings { 
@@ -12,6 +15,9 @@ impl Default for Embeddings {
         Self { 
             token_embeddings: Self::init_embeddings(Vocab::default_words().len(), EMBEDDING_DIM),
             positional_embeddings: Self::init_positional_embeddings(MAX_SEQ_LEN, EMBEDDING_DIM),
+            cached_input: None,
+            token_optimizer: Adam::new((Vocab::default_words().len(), EMBEDDING_DIM), 0.001),
+            positional_optimizer: Adam::new((MAX_SEQ_LEN, EMBEDDING_DIM), 0.001),
          }
     }
 }
@@ -22,6 +28,9 @@ impl Embeddings {
         Self {
             token_embeddings: Self::init_embeddings(vocab.words.len(), EMBEDDING_DIM),
             positional_embeddings: Self::init_positional_embeddings(MAX_SEQ_LEN, EMBEDDING_DIM),
+            cached_input: None,
+            token_optimizer: Adam::new((vocab.words.len(), EMBEDDING_DIM), 0.001),
+            positional_optimizer: Adam::new((MAX_SEQ_LEN, EMBEDDING_DIM), 0.001),
         }
     }
 
@@ -59,15 +68,35 @@ impl Embeddings {
 
 impl Layer for Embeddings {
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
-        println!("input: {:?}", input);
+        self.cached_input = Some(input.clone());
         let token_ids: Vec<usize> = input.iter().map(|&x| x as usize).collect();
-        println!("token_ids: {:?}", token_ids);
         self.embed_tokens(&token_ids)
     }
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
-        let grad_token_embeddings = grads.dot(&self.positional_embeddings.t());
-        let grad_positional_embeddings = grads.t().dot(&self.token_embeddings);
-        grad_token_embeddings + grad_positional_embeddings
+        let input = self.cached_input.as_ref().unwrap();
+        let token_ids: Vec<usize> = input.iter().map(|&x| x as usize).collect();
+        let grads = grads.view(); // (sequence_length, embedding_dim)
+
+        // Initialize gradients for embeddings
+        let mut token_grads = Array2::zeros(self.token_embeddings.dim());
+        let mut positional_grads = Array2::zeros(self.positional_embeddings.dim());
+
+        for (i, &token_id) in token_ids.iter().enumerate() {
+            let grad_row = grads.row(i);
+            let mut temp = token_grads.row(token_id).to_owned();
+            temp += &grad_row;
+            token_grads.row_mut(token_id).assign(&temp);
+            
+            let mut temp = positional_grads.row(i).to_owned();
+            temp += &grad_row;
+            positional_grads.row_mut(i).assign(&temp);
+        }
+
+        self.token_optimizer.step(&mut self.token_embeddings, &token_grads);
+        self.positional_optimizer.step(&mut self.positional_embeddings, &positional_grads);
+
+        // Return gradient to propagate further back
+        grads.to_owned()
     }
 }   
