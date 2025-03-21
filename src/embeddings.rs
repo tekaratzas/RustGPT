@@ -67,10 +67,19 @@ impl Embeddings {
 }
 
 impl Layer for Embeddings {
-    fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
+    // fn input_shape(&self) -> &[usize] {
+    //     &[MAX_SEQ_LEN]
+    // }
+
+    // fn output_shape(&self) -> &[usize] {
+    //     &[MAX_SEQ_LEN, EMBEDDING_DIM]
+    // }
+
+    fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> { // input shape is [1, sequence_length]
+        let input_shape = input.shape();
         self.cached_input = Some(input.clone());
         let token_ids: Vec<usize> = input.iter().map(|&x| x as usize).collect();
-        self.embed_tokens(&token_ids)
+        self.embed_tokens(&token_ids) // shape is [sequence_length, embedding_dim]
     }
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {

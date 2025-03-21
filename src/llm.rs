@@ -18,6 +18,10 @@ pub trait Layer {
         let residual = &output + input;
         layer_norm.normalize(&residual) 
     }
+
+    // I want to use this, but some layers don't have a fixed input or output shape. It's dependent on the Sequence Length.
+    // fn input_shape(&self) -> &[usize];
+    // fn output_shape(&self) -> &[usize];
 }
 
 pub struct LLM {
@@ -106,8 +110,6 @@ impl LLM {
             .map(|(input, target)| (self.tokenize(input), self.tokenize(target)))
             .collect::<Vec<(Vec<usize>, Vec<usize>)>>();
 
-        println!("Tokenized data: {:?}", tokenized_data);
-
         for epoch in 0..epochs {
             let mut total_loss = 0.0;
             for (input, target) in &tokenized_data {
@@ -126,18 +128,17 @@ impl LLM {
                     }
 
                     let logits = input;
-                    let last_logit = logits.row(logits.shape()[0] - 1).to_owned().insert_axis(Axis(0));
-                    let last_probs = Self::softmax(&last_logit);
+                    let probs = Self::softmax(&logits);
 
-                    loss += Self::cross_entropy_loss_step(&last_probs, target);
+                    loss += Self::cross_entropy_loss_step(&probs, target);
 
                     // Backward pass
-                    let mut grads_output = Self::compute_gradients_step(&last_probs, target);
+                    let mut grads_output = Self::compute_gradients_step(&probs, target);
                     for layer in self.network.iter_mut().rev() {
                         grads_output = layer.backward(&grads_output, lr);
                     }
 
-                    let tokens = Self::greedy_decode(&last_probs);
+                    let tokens = Self::greedy_decode(&probs);
                     let next_token = tokens[tokens.len() - 1];
 
                     tokenized.push(next_token);
@@ -232,9 +233,12 @@ impl LLM {
 
     fn compute_gradients_step(probs: &Array2<f32>, target: usize) -> Array2<f32> {
         let mut grads = probs.clone();
-    
-        grads[[0, target]] -= 1.0; // If prob is 100%, then this becomes 0. Effectively a no-op. if it's 0, then it punishes the model for predicting the incorrrect token.
-    
+        
+        // Process each row in the probability matrix
+        for row_idx in 0..grads.shape()[0] {
+            grads[[row_idx, target]] -= 1.0; // Subtract 1.0 from the target column in each row
+        }
+        
         grads
     }
 }

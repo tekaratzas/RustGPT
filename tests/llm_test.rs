@@ -1,4 +1,7 @@
 use llm::{LLM, Vocab, Layer};
+use llm::Embeddings;
+use llm::output_projection::OutputProjection;
+use llm::EMBEDDING_DIM;
 use ndarray::Array2;
 
 struct TestOutputProjectionLayer {
@@ -107,4 +110,28 @@ fn test_llm_train() {
     ];
 
     llm.train(training_data, 10, 0.01);
+}
+
+#[test]
+fn test_llm_integration() {
+    let vocab = Vocab::default();
+    let vocab_size = vocab.encode.len();
+
+    println!("vocab_size: {}", vocab_size);
+
+    let embeddings = Box::new(Embeddings::new(vocab.clone()));
+    let output_projection = Box::new(OutputProjection::new(EMBEDDING_DIM, vocab_size));
+
+    let mut llm = LLM::new(vocab.clone(), vec![
+        embeddings,
+        output_projection
+    ]);
+
+    let input_text = "hello world this is rust";
+    let result = llm.train(vec![
+        (input_text, "rust </s>")
+    ], 10, 0.01);
+
+    let output = llm.predict(input_text);
+    assert_eq!(output, "rust </s>");
 }
