@@ -104,7 +104,6 @@ impl LLM {
         output_tokens
     }
 
-    // TODO: Make this work with just a single string, not a tuple. Need to do the shifting
     pub fn train(&mut self, data: Vec<&str>, epochs: usize, lr: f32) {
         let tokenized_data = data
             .iter()
@@ -114,7 +113,6 @@ impl LLM {
         for epoch in 0..epochs {
             let mut total_loss = 0.0;
             for (training_row) in &tokenized_data {
-                println!("training_row: {:?}", training_row);   
                 if training_row.len() < 2 { continue; }
 
                 // 1. Slice input and targets

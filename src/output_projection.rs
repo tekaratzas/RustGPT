@@ -31,7 +31,6 @@ impl Layer for OutputProjection {
     }
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> { // grads shape is [sequence_length, vocab_size]
-        println!("grads: {:?}", grads);
         let input = self.cached_input.as_ref().unwrap();
         let grad_w_out = input.t().dot(grads);
         let grad_b_out = grads.mean_axis(Axis(0)).unwrap();

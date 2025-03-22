@@ -15,7 +15,6 @@ struct TestOutputProjectionLayer {
 
 impl Layer for TestOutputProjectionLayer {
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
-        println!("input to layer: {:?}", input);
         self.cache_input = Some(input.clone());
         let mut mock_output = Array2::zeros((input.shape()[1], self.vocab_size));
 
@@ -28,22 +27,18 @@ impl Layer for TestOutputProjectionLayer {
             mock_output[[last_token_index, 0]] = 1.0;
         }
 
-        println!("mock_output: {:?}", mock_output);
-
         self.loop_count += 1;
         mock_output
     }
 
     // Need to test this next
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
-        // println!("Grads: {:?}", grads);
         let input = self.cache_input.as_ref().unwrap();
 
         // use chain rule
         let grad_input = input.dot(grads);
         self.cached_grads = Some(grad_input.clone());
 
-        // println!("Grad input: {:?}", grad_input);
         return grad_input
     }
 }
@@ -121,8 +116,6 @@ fn test_llm_train() {
 fn test_llm_integration() {
     let vocab = Vocab::default();
     let vocab_size = vocab.encode.len();
-
-    println!("vocab_size: {}", vocab_size);
 
     let embeddings = Box::new(Embeddings::new(vocab.clone()));
     let output_projection = Box::new(OutputProjection::new(EMBEDDING_DIM, vocab_size));

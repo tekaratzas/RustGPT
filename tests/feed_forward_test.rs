@@ -4,7 +4,6 @@ use llm::feed_forward::FeedForward;
 
 #[test]
 fn test_feed_forward_creation() {
-    println!("EMBEDDING_DIM: {}", EMBEDDING_DIM);
     // Create feed-forward module
     let feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);
 }
