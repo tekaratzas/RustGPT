@@ -104,49 +104,46 @@ impl LLM {
         output_tokens
     }
 
-    pub fn train(&mut self, data: Vec<(&str, &str)>, epochs: usize, lr: f32) {
+    // TODO: Make this work with just a single string, not a tuple. Need to do the shifting
+    pub fn train(&mut self, data: Vec<&str>, epochs: usize, lr: f32) {
         let tokenized_data = data
             .iter()
-            .map(|(input, target)| (self.tokenize(input), self.tokenize(target)))
-            .collect::<Vec<(Vec<usize>, Vec<usize>)>>();
+            .map(|input| (self.tokenize(input)))
+            .collect::<Vec<Vec<usize>>>();
 
         for epoch in 0..epochs {
             let mut total_loss = 0.0;
-            for (input, target) in &tokenized_data {
-                let mut tokenized = input.clone(); // Start with input tokens
-                let mut loss = 0.0;
+            for (training_row) in &tokenized_data {
+                println!("training_row: {:?}", training_row);   
+                if training_row.len() < 2 { continue; }
 
-                for &target in target {
+                // 1. Slice input and targets
+                let input_ids = &training_row[..training_row.len() - 1];
+                let target_ids = &training_row[1..];
 
-                    // Forward pass
-                    let tokenized_clone = tokenized.clone();
-                    let mut input: Array2<f32> = Array2::zeros((1, tokenized_clone.len()));
-                    input.row_mut(0).assign(&tokenized_clone.into_iter().map(|x| x as f32).collect::<Array1<f32>>());
+                // Forward pass
+                let mut input: Array2<f32> = Array2::zeros((1, input_ids.len()));
+                input.row_mut(0).assign(&input_ids.iter().map(|&x| x as f32).collect::<Array1<f32>>());
 
-                    for layer in &mut self.network {
-                        input = layer.forward(&input);
-                    }
-
-                    let logits = input;
-                    let probs = Self::softmax(&logits);
-
-                    loss += Self::cross_entropy_loss_step(&probs, target);
-
-                    // Backward pass
-                    let mut grads_output = Self::compute_gradients_step(&probs, target);
-                    for layer in self.network.iter_mut().rev() {
-                        grads_output = layer.backward(&grads_output, lr);
-                    }
-
-                    let tokens = Self::greedy_decode(&probs);
-                    let next_token = tokens[tokens.len() - 1];
-
-                    tokenized.push(next_token);
-
-                    if next_token == self.vocab.encode("</s>").unwrap() { break; }
+                for layer in &mut self.network {
+                    input = layer.forward(&input);
                 }
 
-                total_loss += loss;
+                let logits = input;
+                let probs = Self::softmax(&logits);
+
+                total_loss += Self::cross_entropy_loss_step(&probs, target_ids);
+
+                // Backward pass
+                let mut grads_output = Self::compute_gradients_step(&probs, target_ids);
+                for layer in self.network.iter_mut().rev() {
+                    grads_output = layer.backward(&grads_output, lr);
+                }
+
+                let tokens = Self::greedy_decode(&probs);
+                let next_token = tokens[tokens.len() - 1];
+
+                if next_token == self.vocab.encode("</s>").unwrap() { break; }
             }
             
             println!("Epoch {}: Loss = {:.4}", epoch, total_loss / tokenized_data.len() as f32);
@@ -226,17 +223,26 @@ impl LLM {
         }).to_vec()
     } 
 
-    fn cross_entropy_loss_step(probs: &Array2<f32>, target: usize) -> f32 {
-        let prob_target = probs[[0, target]]; // Get probability of correct token
-        -prob_target.ln() // Compute negative log-likelihood
+    fn cross_entropy_loss_step(probs: &Array2<f32>, target: &[usize]) -> f32 {
+        let mut loss = 0.0;
+        for row_idx in 0..probs.shape()[0] {
+            let prob_target = probs[[0, target[row_idx]]]; // Get probability of correct token
+            loss -= prob_target.ln();
+        }
+
+        loss / target.len() as f32
     }
 
-    fn compute_gradients_step(probs: &Array2<f32>, target: usize) -> Array2<f32> {
+    fn compute_gradients_step(probs: &Array2<f32>, target: &[usize]) -> Array2<f32> {
         let mut grads = probs.clone();
+
+        if probs.shape()[0] != target.len() {
+            panic!("Probs and target must have the same number of rows");
+        }
         
         // Process each row in the probability matrix
         for row_idx in 0..grads.shape()[0] {
-            grads[[row_idx, target]] -= 1.0; // Subtract 1.0 from the target column in each row
+            grads[[row_idx, target[row_idx]]] -= 1.0; // Subtract 1.0 from the target column in each row
         }
         
         grads
