@@ -15,8 +15,8 @@ mod adam;
 
 // Use the constants from lib.rs
 const MAX_SEQ_LEN: usize = 40;
-const EMBEDDING_DIM: usize = 4;
-const HIDDEN_DIM: usize = 4;
+const EMBEDDING_DIM: usize = 400;
+const HIDDEN_DIM: usize = 400;
 
 fn main() {
     // Mock input
@@ -78,7 +78,7 @@ fn main() {
     ]);
 
     println!("Before Training: {}", llm.predict(&string));
-    llm.train(training_data, 500, 0.05);
+    llm.train(training_data, 50, 0.05);
 
     let result = llm.predict(&string);
     println!("After Training: {}", result);

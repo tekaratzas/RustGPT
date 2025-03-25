@@ -73,15 +73,19 @@ impl LLM {
         let input_len = tokenized.len();
                 
         for _ in 0..MAX_SEQ_LEN-input_len {
-            let tokenized_clone = tokenized.clone();
+            // let tokenized_clone = tokenized.clone();
 
             // Check if we're approaching the maximum sequence length
             if output_tokens.len() >= MAX_SEQ_LEN - 1 {
                 break;
             }
 
-            let mut input: Array2<f32> = Array2::zeros((1, tokenized_clone.len()));
-            input.row_mut(0).assign(&tokenized_clone.into_iter().map(|x| x as f32).collect::<Array1<f32>>());
+            let token_input = Array2::from_shape_vec(
+                (1, tokenized.len()),
+                tokenized.iter().map(|&x| x as f32).collect(),
+            ).unwrap();
+            let mut input = token_input;
+            
             for layer in &mut self.network {
                 input = layer.forward(&input);
             }
