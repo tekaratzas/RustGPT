@@ -7,7 +7,7 @@ use crate::output_projection::OutputProjection;
 use crate::EMBEDDING_DIM;
 use crate::HIDDEN_DIM;
 use crate::MAX_SEQ_LEN;
-
+use std::cmp::Ordering;
 pub trait Layer {
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32>;
 
@@ -116,8 +116,8 @@ impl LLM {
                 if training_row.len() < 2 { continue; }
 
                 // 1. Slice input and targets
-                let input_ids = &training_row[..training_row.len() - 1];
-                let target_ids = &training_row[1..];
+                let input_ids = &training_row[..training_row.len() - 1]; // Exclude the last token
+                let target_ids = &training_row[1..]; // This is a vector. Each element is the index in the vocab. 
 
                 // Forward pass
                 let mut input: Array2<f32> = Array2::zeros((1, input_ids.len()));
@@ -133,7 +133,7 @@ impl LLM {
                 total_loss += Self::cross_entropy_loss_step(&probs, target_ids);
 
                 // Backward pass
-                let mut grads_output = Self::compute_gradients_step(&probs, target_ids);
+                let mut grads_output = Self::compute_gradients_step(&probs, target_ids); // this is d_L/d_output_projection
                 for layer in self.network.iter_mut().rev() {
                     grads_output = layer.backward(&grads_output, lr);
                 }
@@ -193,13 +193,14 @@ impl LLM {
         tokens
     }
 
-    fn softmax(logits: &Array2<f32>) -> Array2<f32> { // logits is 1 x vocab_size
+    fn softmax(logits: &Array2<f32>) -> Array2<f32> { // logits is seq_len x vocab_size
         let mut result = logits.clone();
         
         // Apply softmax row-wise
         for mut row in result.rows_mut() {
             // Calculate exp for each element
-            let exp_values: Vec<f32> = row.iter().map(|&x| x.exp()).collect();
+            let max_val = row.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+            let exp_values: Vec<f32> = row.iter().map(|&x| (x - max_val).exp()).collect();
             let sum_exp: f32 = exp_values.iter().sum();
             
             // Normalize by sum
@@ -215,7 +216,7 @@ impl LLM {
         probs.map_axis(Axis(1), |row| {
             row.iter()
                 .enumerate()
-                .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+                .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(Ordering::Equal))
                 .map(|(index, _)| index)
                 .unwrap()
         }).to_vec()
@@ -224,7 +225,7 @@ impl LLM {
     fn cross_entropy_loss_step(probs: &Array2<f32>, target: &[usize]) -> f32 {
         let mut loss = 0.0;
         for row_idx in 0..probs.shape()[0] {
-            let prob_target = probs[[0, target[row_idx]]]; // Get probability of correct token
+            let prob_target = probs[[row_idx, target[row_idx]]]; // Get probability of correct token
             loss -= prob_target.ln();
         }
 

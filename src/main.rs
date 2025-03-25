@@ -78,7 +78,7 @@ fn main() {
     ]);
 
     println!("Before Training: {}", llm.predict(&string));
-    llm.train(training_data, 100, 0.05);
+    llm.train(training_data, 500, 0.05);
 
     let result = llm.predict(&string);
     println!("After Training: {}", result);
