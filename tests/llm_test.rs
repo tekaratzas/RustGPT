@@ -14,6 +14,10 @@ struct TestOutputProjectionLayer {
 }
 
 impl Layer for TestOutputProjectionLayer {
+    fn layer_type(&self) -> &str {
+        "TestOutputProjectionLayer"
+    }
+
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
         self.cache_input = Some(input.clone());
         let mut mock_output = Array2::zeros((input.shape()[1], self.vocab_size));

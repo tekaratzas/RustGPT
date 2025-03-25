@@ -41,6 +41,10 @@ impl FeedForward {
 }
 
 impl Layer for FeedForward {
+    fn layer_type(&self) -> &str {
+        "FeedForward"
+    }
+
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
         // Unwrap cached values
         let input = self.input.as_ref().expect("forward must be run first");

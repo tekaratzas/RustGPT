@@ -21,9 +21,14 @@ impl TransformerBlock {
 }
 
 impl Layer for TransformerBlock {
+    fn layer_type(&self) -> &str {
+        "TransformerBlock"
+    }
+
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
         let attention_out = self.attention.forward_with_residual(input, &self.layer_norm1);
-        self.feed_forward.forward_with_residual(&attention_out, &self.layer_norm2)
+        let feed_forward_out = self.feed_forward.forward_with_residual(&attention_out, &self.layer_norm2);
+        feed_forward_out
     }
     
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {

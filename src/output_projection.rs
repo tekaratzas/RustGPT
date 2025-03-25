@@ -24,6 +24,10 @@ impl OutputProjection {
 }
 
 impl Layer for OutputProjection {
+    fn layer_type(&self) -> &str {
+        "OutputProjection"
+    }
+
     /// Forward pass: project embeddings to vocab logits
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> { // input shape is [sequence_length, embedding_dim]
         self.cached_input = Some(input.clone());

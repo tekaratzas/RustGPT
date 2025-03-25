@@ -65,8 +65,9 @@ impl SelfAttention {
         
         // Apply softmax row-wise
         for mut row in result.rows_mut() {
+            let max_val = row.iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap();
             // Calculate exp for each element
-            let exp_values: Vec<f32> = row.iter().map(|&x| x.exp()).collect();
+            let exp_values: Vec<f32> = row.iter().map(|&x| (x - max_val).exp()).collect();
             let sum_exp: f32 = exp_values.iter().sum();
             
             // Normalize by sum
@@ -111,6 +112,10 @@ impl SelfAttention {
 }
 
 impl Layer for SelfAttention {
+    fn layer_type(&self) -> &str {
+        "SelfAttention"
+    }
+
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
         self.cached_input = Some(input.clone());
         let qkv = self.compute_qkv(input);

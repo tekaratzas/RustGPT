@@ -9,6 +9,8 @@ use crate::HIDDEN_DIM;
 use crate::MAX_SEQ_LEN;
 use std::cmp::Ordering;
 pub trait Layer {
+    fn layer_type(&self) -> &str;
+
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32>;
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32>;
@@ -125,6 +127,11 @@ impl LLM {
 
                 for layer in &mut self.network {
                     input = layer.forward(&input);
+                    // Check for exploding gradients
+                    if input.iter().any(|x| x.is_nan()) {
+                        let layer_type = layer.layer_type();
+                        panic!("NaN found in input after forward pass. Layer type: {}", layer_type);
+                    }
                 }
 
                 let logits = input;
