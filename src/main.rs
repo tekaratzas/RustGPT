@@ -14,6 +14,7 @@ mod feed_forward;
 mod self_attention;
 mod output_projection;
 mod adam;
+mod layer_norm;
 
 // Use the constants from lib.rs
 const MAX_SEQ_LEN: usize = 40;
@@ -103,14 +104,18 @@ fn main() {
     let vocab_words_refs: Vec<&str> = vocab_words.iter().map(|s| s.as_str()).collect();
     let vocab = Vocab::new(vocab_words_refs);
 
-    let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+    let transformer_block_1 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+    let transformer_block_2 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
     let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
     let embeddings = Embeddings::new(vocab.clone());
     let mut llm = LLM::new(vocab, vec![
         Box::new(embeddings),
-        Box::new(transformer_block),
+        Box::new(transformer_block_1),
+        Box::new(transformer_block_2),
         Box::new(output_projection),
     ]);
+
+    println!("Network description: {}", llm.network_description());
 
     println!("Before Training: {}", llm.predict(&string));
     llm.train(training_data, 100, 0.02);

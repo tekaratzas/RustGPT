@@ -119,7 +119,8 @@ impl Layer for SelfAttention {
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
         self.cached_input = Some(input.clone());
         let qkv = self.compute_qkv(input);
-        self.attention(&qkv.0, &qkv.1, &qkv.2)
+        let attention = self.attention(&qkv.0, &qkv.1, &qkv.2);
+        attention + input // residual connection
     }
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {

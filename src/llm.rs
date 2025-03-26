@@ -15,12 +15,6 @@ pub trait Layer {
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32>;
 
-    fn forward_with_residual(&mut self, input: &Array2<f32>, layer_norm: &LayerNorm) -> Array2<f32> {
-        let output = self.forward(input);
-        let residual = &output + input;
-        layer_norm.normalize(&residual) 
-    }
-
     // I want to use this, but some layers don't have a fixed input or output shape. It's dependent on the Sequence Length.
     // fn input_shape(&self) -> &[usize];
     // fn output_shape(&self) -> &[usize];
@@ -56,6 +50,10 @@ impl LLM {
 }
 
 impl LLM {
+    pub fn network_description(&self) -> String {
+        self.network.iter().map(|layer| layer.layer_type()).collect::<Vec<&str>>().join(", ")
+    }
+
     pub fn predict(&mut self, text: &str) -> String {
         let output_tokens = self.forward(text);
 
@@ -99,7 +97,7 @@ impl LLM {
             // Greedy Decode - Choose the highest probability token for each position
             let tokens = Self::greedy_decode(&probs);
 
-            let next_token = tokens[tokens.len() - 1];
+            let next_token = tokens[tokens.len() - 1];              
 
             output_tokens.push(next_token);
             tokenized.push(next_token);
@@ -251,31 +249,5 @@ impl LLM {
         }
         
         grads
-    }
-}
-
-pub struct LayerNorm {
-    epsilon: f32,   // Small constant for stability
-    gamma: Array2<f32>, // Learnable scaling parameter
-    beta: Array2<f32>,  // Learnable bias parameter
-}
-
-impl LayerNorm {
-    /// Initialize LayerNorm with learnable parameters
-    pub fn new(embedding_dim: usize) -> Self {
-        LayerNorm {
-            epsilon: 1e-5,
-            gamma: Array2::ones((1, embedding_dim)), // Initialize gamma to 1
-            beta: Array2::zeros((1, embedding_dim)), // Initialize beta to 0
-        }
-    }
-
-    pub fn normalize(&self, input: &Array2<f32>) -> Array2<f32> {
-        let mean = input.mean_axis(Axis(1)).unwrap().insert_axis(Axis(1)); // Mean per token
-        let std = input.std_axis(Axis(1), 0.0).insert_axis(Axis(1)); // Std per token
-
-        // Normalize: (X - mean) / (std + epsilon)
-        let normalized = (input - &mean) / (&std + self.epsilon);
-        normalized * &self.gamma + &self.beta // Apply gamma & beta
     }
 }

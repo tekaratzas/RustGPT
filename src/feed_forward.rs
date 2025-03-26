@@ -91,6 +91,6 @@ impl Layer for FeedForward {
         self.hidden_pre_activation = Some(hidden_pre_activation);
         self.hidden_post_activation = Some(hidden_post_activation);
 
-        output
+        output + input // residual connection
     }
 }

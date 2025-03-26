@@ -11,7 +11,6 @@ pub use vocab::Vocab;
 pub use embeddings::Embeddings;
 pub use llm::LLM;
 pub use llm::Layer;
-pub use llm::LayerNorm;
 
 // Constants
 pub const MAX_SEQ_LEN: usize = 40;
