@@ -16,9 +16,9 @@ impl Default for Embeddings {
             token_embeddings: Self::init_embeddings(Vocab::default_words().len(), EMBEDDING_DIM),
             positional_embeddings: Self::init_positional_embeddings(MAX_SEQ_LEN, EMBEDDING_DIM),
             cached_input: None,
-            token_optimizer: Adam::new((Vocab::default_words().len(), EMBEDDING_DIM), 0.001),
-            positional_optimizer: Adam::new((MAX_SEQ_LEN, EMBEDDING_DIM), 0.001),
-         }
+            token_optimizer: Adam::new((Vocab::default_words().len(), EMBEDDING_DIM)),
+            positional_optimizer: Adam::new((MAX_SEQ_LEN, EMBEDDING_DIM))
+        }
     }
 }
 
@@ -29,8 +29,8 @@ impl Embeddings {
             token_embeddings: Self::init_embeddings(vocab.words.len(), EMBEDDING_DIM),
             positional_embeddings: Self::init_positional_embeddings(MAX_SEQ_LEN, EMBEDDING_DIM),
             cached_input: None,
-            token_optimizer: Adam::new((vocab.words.len(), EMBEDDING_DIM), 0.001),
-            positional_optimizer: Adam::new((MAX_SEQ_LEN, EMBEDDING_DIM), 0.001),
+            token_optimizer: Adam::new((vocab.words.len(), EMBEDDING_DIM)),
+            positional_optimizer: Adam::new((MAX_SEQ_LEN, EMBEDDING_DIM)),
         }
     }
 
@@ -105,10 +105,10 @@ impl Layer for Embeddings {
             positional_grads.row_mut(i).assign(&temp);
         }
 
-        self.token_optimizer.step(&mut self.token_embeddings, &token_grads);
-        self.positional_optimizer.step(&mut self.positional_embeddings, &positional_grads);
+        self.token_optimizer.step(&mut self.token_embeddings, &token_grads, lr);
+        self.positional_optimizer.step(&mut self.positional_embeddings, &positional_grads, lr);
 
         // Return gradient to propagate further back
         grads.to_owned()
     }
-}   
+}

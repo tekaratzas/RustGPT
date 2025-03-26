@@ -26,8 +26,8 @@ impl LayerNorm {
             cached_input: None,
             cached_mean: None,
             cached_std: None,
-            optimizer_gamma: Adam::new((1, embedding_dim), 0.001),
-            optimizer_beta: Adam::new((1, embedding_dim), 0.001),
+            optimizer_gamma: Adam::new((1, embedding_dim)),
+            optimizer_beta: Adam::new((1, embedding_dim)),
         }
     }
 

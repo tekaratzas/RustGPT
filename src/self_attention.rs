@@ -37,9 +37,9 @@ impl SelfAttention {
             w_k: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
             w_v: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
             cached_input: None,
-            optimizer_w_q: Adam::new((embedding_dim, embedding_dim), 0.001),
-            optimizer_w_k: Adam::new((embedding_dim, embedding_dim), 0.001),
-            optimizer_w_v: Adam::new((embedding_dim, embedding_dim), 0.001),
+            optimizer_w_q: Adam::new((embedding_dim, embedding_dim)),
+            optimizer_w_k: Adam::new((embedding_dim, embedding_dim)),
+            optimizer_w_v: Adam::new((embedding_dim, embedding_dim)),
         }
     }
 
@@ -158,9 +158,9 @@ impl Layer for SelfAttention {
             grad_v.dot(&self.w_v.t());
     
         // Step 6: update weights
-        self.optimizer_w_q.step(&mut self.w_q, &grad_w_q);
-        self.optimizer_w_k.step(&mut self.w_k, &grad_w_k);
-        self.optimizer_w_v.step(&mut self.w_v, &grad_w_v);
+        self.optimizer_w_q.step(&mut self.w_q, &grad_w_q, lr);
+        self.optimizer_w_k.step(&mut self.w_k, &grad_w_k, lr);
+        self.optimizer_w_v.step(&mut self.w_v, &grad_w_v, lr);
     
         grad_input        
     }

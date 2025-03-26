@@ -118,7 +118,7 @@ fn main() {
     println!("Network description: {}", llm.network_description());
 
     println!("Before Training: {}", llm.predict(&string));
-    llm.train(training_data, 100, 0.02);
+    llm.train(training_data, 100, 0.002);
 
     let result = llm.predict(&string);
     println!("After Training: {}", result);

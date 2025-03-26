@@ -32,10 +32,10 @@ impl FeedForward {
             input: None,
             hidden_pre_activation: None,
             hidden_post_activation: None,
-            optimizer_w1: Adam::new((embedding_dim, hidden_dim), 0.001),
-            optimizer_b1: Adam::new((1, hidden_dim), 0.001),
-            optimizer_w2: Adam::new((hidden_dim, embedding_dim), 0.001),
-            optimizer_b2: Adam::new((1, embedding_dim), 0.001),
+            optimizer_w1: Adam::new((embedding_dim, hidden_dim)),
+            optimizer_b1: Adam::new((1, hidden_dim)),
+            optimizer_w2: Adam::new((hidden_dim, embedding_dim)),
+            optimizer_b2: Adam::new((1, embedding_dim)),
         }
     }
 }
@@ -71,10 +71,10 @@ impl Layer for FeedForward {
         let grad_input = grad_hidden_pre_activation.dot(&self.w1.t());
 
         // Update parameters via Adam optimizer
-        self.optimizer_w2.step(&mut self.w2, &grad_w2);
-        self.optimizer_b2.step(&mut self.b2, &grad_b2.insert_axis(Axis(0)));
-        self.optimizer_w1.step(&mut self.w1, &grad_w1);
-        self.optimizer_b1.step(&mut self.b1, &grad_b1.insert_axis(Axis(0)));
+        self.optimizer_w2.step(&mut self.w2, &grad_w2, lr); // lr is 0.01
+        self.optimizer_b2.step(&mut self.b2, &grad_b2.insert_axis(Axis(0)), lr);
+        self.optimizer_w1.step(&mut self.w1, &grad_w1, lr);
+        self.optimizer_b1.step(&mut self.b1, &grad_b1.insert_axis(Axis(0)), lr);
 
         grad_input
     }

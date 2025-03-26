@@ -5,7 +5,7 @@ use llm::adam::Adam;
 fn test_adam_initialization() {
     let shape = [2, 3];
     let lr = 0.001;
-    let adam = Adam::new((2, 3), lr);
+    let adam = Adam::new((2, 3));
     
     // Check if momentum and velocity matrices are initialized to zeros
     assert_eq!(adam.m.shape(), shape);
@@ -18,7 +18,7 @@ fn test_adam_initialization() {
 fn test_adam_step() {
     let shape = (2, 2);
     let lr = 0.001;
-    let mut adam = Adam::new(shape, lr);
+    let mut adam = Adam::new(shape);
     let mut params = Array2::ones(shape);
     let grads = Array2::ones(shape);
     
@@ -26,7 +26,7 @@ fn test_adam_step() {
     let initial_params = params.clone();
     
     // Perform optimization step
-    adam.step(&mut params, &grads);
+    adam.step(&mut params, &grads, lr);
     
     // Parameters should have changed
     assert_ne!(params, initial_params);
@@ -39,7 +39,7 @@ fn test_adam_step() {
 fn test_adam_multiple_steps() {
     let shape = (2, 2);
     let lr = 0.001;
-    let mut adam = Adam::new(shape, lr);
+    let mut adam = Adam::new(shape);
     let mut params = Array2::ones(shape);
     let grads = Array2::ones(shape);
     
@@ -48,7 +48,7 @@ fn test_adam_multiple_steps() {
     
     // Perform multiple optimization steps
     for _ in 0..10 {
-        adam.step(&mut params, &grads);
+        adam.step(&mut params, &grads, lr);
     }
     
     // Parameters should have changed more significantly
@@ -59,7 +59,7 @@ fn test_adam_multiple_steps() {
 fn test_adam_with_zero_gradients() {
     let shape = (2, 2);
     let lr = 0.001;
-    let mut adam = Adam::new(shape, lr);
+    let mut adam = Adam::new(shape);
     let mut params = Array2::ones(shape);
     let grads = Array2::zeros(shape);
     
@@ -67,7 +67,7 @@ fn test_adam_with_zero_gradients() {
     let initial_params = params.clone();
     
     // Perform optimization step with zero gradients
-    adam.step(&mut params, &grads);
+    adam.step(&mut params, &grads, lr);
     
     // Parameters should not change with zero gradients
     assert_eq!(params, initial_params);
@@ -77,7 +77,7 @@ fn test_adam_with_zero_gradients() {
 fn test_adam_with_negative_gradients() {
     let shape = (2, 2);
     let lr = 0.001;
-    let mut adam = Adam::new(shape, lr);
+    let mut adam = Adam::new(shape);
     let mut params = Array2::ones(shape);
     let grads = Array2::from_shape_fn(shape, |_| -1.0);
     
@@ -85,7 +85,7 @@ fn test_adam_with_negative_gradients() {
     let initial_params = params.clone();
     
     // Perform optimization step
-    adam.step(&mut params, &grads);
+    adam.step(&mut params, &grads, lr);
     
     // Parameters should have increased (since gradients are negative)
     assert!(params.iter().all(|&x| x > 1.0));

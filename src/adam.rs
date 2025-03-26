@@ -1,7 +1,6 @@
 use ndarray::Array2;
 
 pub struct Adam {
-    lr: f32,
     beta1: f32,
     beta2: f32,
     epsilon: f32,
@@ -11,9 +10,8 @@ pub struct Adam {
 }
 
 impl Adam {
-    pub fn new(shape: (usize, usize), lr: f32) -> Self {
+    pub fn new(shape: (usize, usize)) -> Self {
         Self {
-            lr,
             beta1: 0.9,
             beta2: 0.999,
             epsilon: 1e-8,
@@ -23,7 +21,7 @@ impl Adam {
         }
     }
 
-    pub fn step(&mut self, params: &mut Array2<f32>, grads: &Array2<f32>) {
+    pub fn step(&mut self, params: &mut Array2<f32>, grads: &Array2<f32>, lr: f32) {
         self.timestep += 1;
         self.m = &self.m * self.beta1 + grads * (1.0 - self.beta1);
         self.v = &self.v * self.beta2 + grads.mapv(|x| x * x) * (1.0 - self.beta2);
@@ -33,6 +31,6 @@ impl Adam {
 
         let update = m_hat.clone() / (v_hat.mapv(|x| x.sqrt()) + self.epsilon);
 
-        *params -= &(update * self.lr);
+        *params -= &(update * lr);
     }
 }
