@@ -15,12 +15,12 @@ mod adam;
 
 // Use the constants from lib.rs
 const MAX_SEQ_LEN: usize = 40;
-const EMBEDDING_DIM: usize = 400;
-const HIDDEN_DIM: usize = 400;
+const EMBEDDING_DIM: usize = 100;
+const HIDDEN_DIM: usize = 100;
 
 fn main() {
     // Mock input
-    let string = String::from("hi how are you </s>");
+    let string = String::from("mountains are formed");
 
     // Extract all unique words from training data to create vocabulary
     let mut vocab_set = std::collections::HashSet::new();
@@ -29,16 +29,49 @@ fn main() {
     vocab_set.insert("</s>".to_string());
     
     let training_data = vec![
-        ("hi how are you! I'm doing well, how about you? </s>"),
-        ("hello how are? I'm great! How's your day? </s>"),
-        ("hi there friend. Hey! It's nice to see you. </s>"),
-        ("good morning how. Good morning! How's your day so far? </s>"),
-        ("what is up Not much, just here to chat! What about you? </s>"),
-        ("how is it It's going well! Thanks for asking. </s>"),
-        ("nice to see Nice to see you too! How have you been? </s>"),
-        ("hi how is Hi! How is your day going? </s>"),
-        ("good evening friend Good evening! Hope you had a great day. </s>"),
-        ("what are you I'm an AI here to chat with you! What's on your mind? </s>")
+        ("the sky is often blue during the day due to the scattering of sunlight by the atmosphere </s>"),
+        ("mountains are formed through tectonic forces or volcanism over long geological time periods </s>"),
+        ("the amazon rainforest is one of the most biodiverse places on earth </s>"),
+        ("water boils at 100 degrees celsius at standard atmospheric pressure </s>"),
+        ("the moon orbits the earth approximately every 27.3 days </s>"),
+        ("photosynthesis is the process by which green plants use sunlight to synthesize food </s>"),
+        ("gravity is a force that attracts two bodies toward each other based on their mass </s>"),
+        ("the human brain contains about 86 billion neurons that transmit information </s>"),
+        ("electricity is the flow of electrons through a conductor, often used to power devices </s>"),
+        ("climate change refers to long-term shifts in temperatures and weather patterns </s>"),
+
+        ("oak trees can live for hundreds of years and produce acorns as their fruit </s>"),
+        ("pluto was reclassified from a planet to a dwarf planet in 2006 </s>"),
+        ("glass is made by heating sand, soda ash, and limestone to very high temperatures </s>"),
+        ("volcanoes can erupt with lava, ash, and gases, altering landscapes and ecosystems </s>"),
+        ("the great wall of china was built to protect ancient china from invasions </s>"),
+        ("penguins are flightless birds that are well adapted to life in cold environments </s>"),
+        ("deserts receive less than 250 millimeters of precipitation each year </s>"),
+        ("jupiter is the largest planet in our solar system and has dozens of moons </s>"),
+        ("light travels at approximately 299,792 kilometers per second in a vacuum </s>"),
+        ("gold is a dense, soft metal often used in jewelry and electronics due to its conductivity </s>"),
+
+        ("most of the earth's surface is covered by water, primarily in oceans </s>"),
+        ("bicycles are an efficient mode of transport that convert human energy into motion </s>"),
+        ("chocolate is made from roasted and ground cacao seeds, often sweetened and flavored </s>"),
+        ("the internet is a global network that allows for digital communication and information sharing </s>"),
+        ("wind energy is harnessed using turbines and converted into electricity </s>"),
+        ("cats are domesticated mammals known for their independence and hunting instincts </s>"),
+        ("languages evolve over time through cultural, social, and technological influences </s>"),
+        ("the printing press revolutionized the spread of information in the 15th century </s>"),
+        ("sound is a vibration that travels through air, water, or solid materials </s>"),
+        ("carbon is an essential element in organic chemistry, forming the basis of life </s>"),
+
+        ("the library of alexandria was one of the most significant libraries of the ancient world </s>"),
+        ("honeybees play a vital role in pollination, which supports ecosystems and agriculture </s>"),
+        ("electric vehicles produce less air pollution than traditional gasoline-powered cars </s>"),
+        ("bread is typically made from flour, water, yeast, and salt through a baking process </s>"),
+        ("the sahara desert is the largest hot desert in the world, spanning multiple countries </s>"),
+        ("renewable resources replenish naturally and include sunlight, wind, and water </s>"),
+        ("eclipses occur when one celestial body moves into the shadow of another </s>"),
+        ("language models are trained using vast amounts of text to learn patterns in language </s>"),
+        ("compasses work by aligning a magnetic needle with the earth’s magnetic field </s>"),
+        ("vaccines help the immune system recognize and fight off specific pathogens </s>"),
     ];
     
     // Process all training examples
@@ -78,7 +111,7 @@ fn main() {
     ]);
 
     println!("Before Training: {}", llm.predict(&string));
-    llm.train(training_data, 50, 0.05);
+    llm.train(training_data, 50, 0.02);
 
     let result = llm.predict(&string);
     println!("After Training: {}", result);

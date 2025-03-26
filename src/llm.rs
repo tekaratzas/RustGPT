@@ -131,11 +131,6 @@ impl LLM {
 
                 for layer in &mut self.network {
                     input = layer.forward(&input);
-                    // Check for exploding gradients
-                    if input.iter().any(|x| x.is_nan()) {
-                        let layer_type = layer.layer_type();
-                        panic!("NaN found in input after forward pass. Layer type: {}", layer_type);
-                    }
                 }
 
                 let logits = input;
@@ -152,7 +147,7 @@ impl LLM {
                 let tokens = Self::greedy_decode(&probs);
                 let next_token = tokens[tokens.len() - 1];
 
-                if next_token == self.vocab.encode("</s>").unwrap() { break; }
+                if next_token == self.vocab.encode("</s>").unwrap() { continue; }
             }
             
             println!("Epoch {}: Loss = {:.4}", epoch, total_loss / tokenized_data.len() as f32);
