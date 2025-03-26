@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use embeddings::Embeddings;
 use output_projection::OutputProjection;
 use transformer::TransformerBlock;
@@ -15,8 +17,8 @@ mod adam;
 
 // Use the constants from lib.rs
 const MAX_SEQ_LEN: usize = 40;
-const EMBEDDING_DIM: usize = 100;
-const HIDDEN_DIM: usize = 100;
+const EMBEDDING_DIM: usize = 50;
+const HIDDEN_DIM: usize = 50;
 
 fn main() {
     // Mock input
@@ -70,12 +72,12 @@ fn main() {
         ("renewable resources replenish naturally and include sunlight, wind, and water </s>"),
         ("eclipses occur when one celestial body moves into the shadow of another </s>"),
         ("language models are trained using vast amounts of text to learn patterns in language </s>"),
-        ("compasses work by aligning a magnetic needle with the earth’s magnetic field </s>"),
+        ("compasses work by aligning a magnetic needle with the earth's magnetic field </s>"),
         ("vaccines help the immune system recognize and fight off specific pathogens </s>"),
     ];
     
     // Process all training examples
-    for (row) in &training_data {
+    for row in &training_data {
         // Add words from outputs
         for word in row.split_whitespace() {
             // Handle punctuation by splitting it from words
@@ -111,8 +113,37 @@ fn main() {
     ]);
 
     println!("Before Training: {}", llm.predict(&string));
-    llm.train(training_data, 50, 0.02);
+    llm.train(training_data, 100, 0.02);
 
     let result = llm.predict(&string);
     println!("After Training: {}", result);
+
+    // Interactive mode for user input
+    println!("\n--- Interactive Mode ---");
+    println!("Type a prompt and press Enter to generate text.");
+    println!("Type 'exit' to quit.");
+    
+    let mut input = String::new();
+    loop {
+        // Clear the input string
+        input.clear();
+        
+        // Prompt for user input
+        print!("\nEnter prompt: ");
+        std::io::stdout().flush().unwrap();
+        
+        // Read user input
+        std::io::stdin().read_line(&mut input).expect("Failed to read input");
+        
+        // Trim whitespace and check for exit command
+        let trimmed_input = input.trim();
+        if trimmed_input.eq_ignore_ascii_case("exit") {
+            println!("Exiting interactive mode.");
+            break;
+        }
+        
+        // Generate prediction based on user input
+        let prediction = llm.predict(trimmed_input);
+        println!("Model output: {}", prediction);
+    }
 }
