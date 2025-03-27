@@ -127,7 +127,7 @@ impl LLM {
                 let mut input: Array2<f32> = Array2::zeros((1, input_ids.len()));
                 input.row_mut(0).assign(&input_ids.iter().map(|&x| x as f32).collect::<Array1<f32>>());
 
-                for layer in &mut self.network {
+                for layer in &mut self.network {    
                     input = layer.forward(&input);
                 }
 

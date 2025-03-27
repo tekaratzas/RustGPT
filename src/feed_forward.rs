@@ -1,6 +1,7 @@
 use ndarray::Array2;
 use ndarray::Axis;
 use rand::prelude::*;
+use crate::layer_norm::LayerNorm;
 use crate::{adam::Adam, llm::Layer};
 
 pub struct FeedForward {
@@ -8,6 +9,7 @@ pub struct FeedForward {
     b1: Array2<f32>,
     w2: Array2<f32>,
     b2: Array2<f32>,
+    norm: LayerNorm,
 
     // Cached values for backward pass
     input: Option<Array2<f32>>,
@@ -29,6 +31,7 @@ impl FeedForward {
             b1: Array2::zeros((1, hidden_dim)), // Bias initialized to 0
             w2: Array2::from_shape_fn((hidden_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
             b2: Array2::zeros((1, embedding_dim)), // Bias initialized to 0
+            norm: LayerNorm::new(embedding_dim),
             input: None,
             hidden_pre_activation: None,
             hidden_post_activation: None,
@@ -91,6 +94,7 @@ impl Layer for FeedForward {
         self.hidden_pre_activation = Some(hidden_pre_activation);
         self.hidden_post_activation = Some(hidden_post_activation);
 
-        output + input // residual connection
+        let residual = output + input; // residual connection
+        self.norm.normalize(&residual)
     }
 }

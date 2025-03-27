@@ -106,22 +106,34 @@ fn main() {
 
     let transformer_block_1 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
     let transformer_block_2 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+    let transformer_block_3 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
     let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
     let embeddings = Embeddings::new(vocab.clone());
     let mut llm = LLM::new(vocab, vec![
         Box::new(embeddings),
         Box::new(transformer_block_1),
         Box::new(transformer_block_2),
+        Box::new(transformer_block_3),
         Box::new(output_projection),
     ]);
 
-    println!("Network description: {}", llm.network_description());
-
-    println!("Before Training: {}", llm.predict(&string));
-    llm.train(training_data, 100, 0.002);
-
+    println!("\n=== MODEL INFORMATION ===");
+    println!("Network architecture: {}", llm.network_description());
+    
+    println!("\n=== BEFORE TRAINING ===");
+    println!("Input: {}", string);
+    println!("Output: {}", llm.predict(&string));
+    
+    println!("\n=== TRAINING MODEL ===");
+    println!("Training on {} examples for {} epochs with learning rate {}", 
+             training_data.len(), 100, 0.001);
+    llm.train(training_data, 100, 0.001);
+    
+    println!("\n=== AFTER TRAINING ===");
+    println!("Input: {}", string);
     let result = llm.predict(&string);
-    println!("After Training: {}", result);
+    println!("Output: {}", result);
+    println!("======================\n");
 
     // Interactive mode for user input
     println!("\n--- Interactive Mode ---");

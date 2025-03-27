@@ -1,4 +1,5 @@
 use crate::adam::Adam;
+use crate::layer_norm::LayerNorm;
 use crate::EMBEDDING_DIM;
 use ndarray::Array2;
 use rand::prelude::*;
@@ -12,6 +13,7 @@ pub struct SelfAttention {
     w_q: Array2<f32>, // Weight matrices for Q, K, V
     w_k: Array2<f32>,
     w_v: Array2<f32>,
+    norm: LayerNorm,
 
     cached_input: Option<Array2<f32>>,
 
@@ -36,6 +38,7 @@ impl SelfAttention {
             w_q: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
             w_k: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
             w_v: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
+            norm: LayerNorm::new(embedding_dim),
             cached_input: None,
             optimizer_w_q: Adam::new((embedding_dim, embedding_dim)),
             optimizer_w_k: Adam::new((embedding_dim, embedding_dim)),
@@ -120,7 +123,8 @@ impl Layer for SelfAttention {
         self.cached_input = Some(input.clone());
         let qkv = self.compute_qkv(input);
         let attention = self.attention(&qkv.0, &qkv.1, &qkv.2);
-        attention + input // residual connection
+        let residual = attention + input; // residual connection
+        self.norm.normalize(&residual)
     }
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
