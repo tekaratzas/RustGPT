@@ -18,8 +18,8 @@ mod layer_norm;
 
 // Use the constants from lib.rs
 const MAX_SEQ_LEN: usize = 40;
-const EMBEDDING_DIM: usize = 50;
-const HIDDEN_DIM: usize = 50;
+const EMBEDDING_DIM: usize = 32;
+const HIDDEN_DIM: usize = 32;
 
 fn main() {
     // Mock input
