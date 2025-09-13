@@ -138,8 +138,14 @@ impl LLM {
 
                 // Backward pass
                 let mut grads_output = Self::compute_gradients_step(&probs, target_ids); // this is d_L/d_output_projection
+                
+                // Apply gradient clipping
+                Self::clip_gradients(&mut grads_output, 1.0);
+                
                 for layer in self.network.iter_mut().rev() {
                     grads_output = layer.backward(&grads_output, lr);
+                    // Apply gradient clipping to intermediate gradients as well
+                    Self::clip_gradients(&mut grads_output, 1.0);
                 }
 
                 let tokens = Self::greedy_decode(&probs);
@@ -249,5 +255,16 @@ impl LLM {
         }
         
         grads
+    }
+
+    fn clip_gradients(grads: &mut Array2<f32>, max_norm: f32) {
+        // Calculate L2 norm of gradients
+        let norm = grads.iter().map(|&x| x * x).sum::<f32>().sqrt();
+        
+        // If norm exceeds max_norm, scale gradients down
+        if norm > max_norm {
+            let scale = max_norm / norm;
+            grads.mapv_inplace(|x| x * scale);
+        }
     }
 }
