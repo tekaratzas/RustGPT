@@ -28,7 +28,10 @@ impl Layer for TransformerBlock {
     }
     
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
+        // Feed-forward layer handles its own residual connection
         let grad_after_ffn = self.feed_forward.backward(grads, lr);
+        
+        // Attention layer handles its own residual connection  
         let grad_after_attn = self.attention.backward(&grad_after_ffn, lr);
 
         grad_after_attn

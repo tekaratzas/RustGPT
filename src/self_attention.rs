@@ -3,7 +3,7 @@ use crate::layer_norm::LayerNorm;
 use crate::EMBEDDING_DIM;
 use ndarray::Array2;
 use rand::prelude::*;
-use rand::thread_rng;
+use rand_distr::{Normal, Distribution};
 use crate::llm::Layer;
 use std::f32;
 
@@ -33,11 +33,15 @@ impl SelfAttention {
     /// Initializes a Transformer with random Q, K, V weights
     pub fn new(embedding_dim: usize) -> Self {
         let mut rng = rand::rng();
+        // Xavier/He initialization: std = sqrt(2 / fan_in)
+        let std = (2.0 / embedding_dim as f32).sqrt();
+        let normal = Normal::new(0.0, std).unwrap();
+        
         SelfAttention {
             embedding_dim,
-            w_q: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
-            w_k: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
-            w_v: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| rng.random_range(-0.1..0.1)),
+            w_q: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| normal.sample(&mut rng)),
+            w_k: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| normal.sample(&mut rng)),
+            w_v: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| normal.sample(&mut rng)),
             norm: LayerNorm::new(embedding_dim),
             cached_input: None,
             optimizer_w_q: Adam::new((embedding_dim, embedding_dim)),
@@ -172,13 +176,17 @@ impl Layer for SelfAttention {
         let grad_w_k = input.t().dot(&grad_k);
         let grad_w_v = input.t().dot(&grad_v);
     
-        // Step 5: ∂L/∂input
-        let grad_input =
+        // Step 5: ∂L/∂input (gradient through attention computation)
+        let grad_input_attention =
             grad_q.dot(&self.w_q.t()) +
             grad_k.dot(&self.w_k.t()) +
             grad_v.dot(&self.w_v.t());
     
-        // Step 6: update weights
+        // Step 6: Add gradient from residual connection 
+        // Forward: residual = attention + input, so gradient flows directly through
+        let grad_input = grad_input_attention + grads;
+    
+        // Step 7: update weights
         self.optimizer_w_q.step(&mut self.w_q, &grad_w_q, lr);
         self.optimizer_w_k.step(&mut self.w_k, &grad_w_k, lr);
         self.optimizer_w_v.step(&mut self.w_v, &grad_w_v, lr);

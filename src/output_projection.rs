@@ -1,5 +1,6 @@
 use ndarray::{Array2, Axis};
 use rand::prelude::*;
+use rand_distr::{Normal, Distribution};
 
 use crate::{adam::Adam, llm::Layer};
 
@@ -14,8 +15,12 @@ impl OutputProjection {
     /// Initialize output layer with random weights and zero bias
     pub fn new(embedding_dim: usize, vocab_size: usize) -> Self {
         let mut rng = rand::rng();
+        // Xavier/He initialization: std = sqrt(2 / fan_in)
+        let std = (2.0 / embedding_dim as f32).sqrt();
+        let normal = Normal::new(0.0, std).unwrap();
+        
         OutputProjection {
-            w_out: Array2::from_shape_fn((embedding_dim, vocab_size), |_| rng.random_range(-0.1..0.1)),
+            w_out: Array2::from_shape_fn((embedding_dim, vocab_size), |_| normal.sample(&mut rng)),
             b_out: Array2::zeros((1, vocab_size)),
             optimizer: Adam::new((embedding_dim, vocab_size)),
             cached_input: None,
