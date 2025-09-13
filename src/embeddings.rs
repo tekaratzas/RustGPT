@@ -1,5 +1,6 @@
 use ndarray::{s, Array2};
 use rand::prelude::*;
+use rand_distr::{Normal, Distribution};
 use crate::{vocab::Vocab, llm::Layer, EMBEDDING_DIM, MAX_SEQ_LEN, adam::Adam};
 
 pub struct Embeddings {
@@ -36,12 +37,14 @@ impl Embeddings {
 
     fn init_embeddings(vocab_size: usize, embedding_dim: usize) -> Array2<f32> {
         let mut rng = rand::rng();
-        Array2::from_shape_fn((vocab_size, embedding_dim), |_| rng.random_range(-1.0..1.0))
+        let normal = Normal::new(0.0, 0.01).unwrap();
+        Array2::from_shape_fn((vocab_size, embedding_dim), |_| normal.sample(&mut rng))
     }
 
     fn init_positional_embeddings(max_seq_len: usize, embedding_dim: usize) -> Array2<f32> {
         let mut rng = rand::rng();
-        Array2::from_shape_fn((max_seq_len, embedding_dim), |_| rng.random_range(-1.0..1.0))
+        let normal = Normal::new(0.0, 0.01).unwrap();
+        Array2::from_shape_fn((max_seq_len, embedding_dim), |_| normal.sample(&mut rng))
     }
 
     fn get_token_embeddings(embeddings: &Array2<f32>, token_ids: &[usize]) -> Array2<f32> {
