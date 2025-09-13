@@ -57,7 +57,15 @@ impl SelfAttention {
         let dk = (self.embedding_dim as f32).sqrt();
 
         let k_t = k.t();
-        let scores = q.dot(&k_t) / dk;
+        let mut scores = q.dot(&k_t) / dk;
+
+        // Apply causal masking - prevent attention to future tokens
+        let seq_len = scores.shape()[0];
+        for i in 0..seq_len {
+            for j in (i + 1)..seq_len {
+                scores[[i, j]] = f32::NEG_INFINITY;
+            }
+        }
 
         let weights = self.softmax(&scores);
         weights.dot(v)
@@ -135,7 +143,16 @@ impl Layer for SelfAttention {
         let dk = self.w_q.shape()[1] as f32;
         let scale = dk.sqrt();
     
-        let scores = q.dot(&k.t()) / scale;
+        let mut scores = q.dot(&k.t()) / scale;
+        
+        // Apply causal masking - prevent attention to future tokens
+        let seq_len = scores.shape()[0];
+        for i in 0..seq_len {
+            for j in (i + 1)..seq_len {
+                scores[[i, j]] = f32::NEG_INFINITY;
+            }
+        }
+        
         let attn_weights = self.softmax(&scores); // also cached
         let attn_output = attn_weights.dot(&v); // also cached
     
