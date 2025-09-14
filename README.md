@@ -1,7 +1,6 @@
 # 🦀 Rust LLM from Scratch
 
-https://github.com/user-attachments/assets/d20a4291-ed82-46ca-8f70-352068fb1a3c
-
+https://github.com/user-attachments/assets/ec4a4100-b03a-4b3c-a7d6-806ea54ed4ed
 
 A complete **Large Language Model implementation in pure Rust** with no external ML frameworks. Built from the ground up using only `ndarray` for matrix operations.
 
