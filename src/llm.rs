@@ -57,6 +57,11 @@ impl LLM {
     pub fn predict(&mut self, text: &str) -> String {
         let output_tokens = self.forward(text);
 
+        // Handle empty output
+        if output_tokens.is_empty() {
+            return String::new();
+        }
+
         // Convert token_ids to strings
         let token_strs = output_tokens.iter().map(|t| self.vocab.decode[t].clone()).collect::<Vec<String>>();
 
@@ -68,9 +73,19 @@ impl LLM {
         let mut tokenized = self.tokenize(text);
         let mut output_tokens: Vec<usize> = Vec::new();
 
+        // Safety check: ensure we have at least one token
+        if tokenized.is_empty() {
+            return output_tokens;
+        }
+
         let input_len = tokenized.len();
+        
+        // Prevent overflow if input_len >= MAX_SEQ_LEN
+        if input_len >= MAX_SEQ_LEN {
+            return output_tokens;
+        }
                 
-        for _ in 0..MAX_SEQ_LEN-input_len {
+        for _ in 0..(MAX_SEQ_LEN - input_len) {
             // let tokenized_clone = tokenized.clone();
 
             // Check if we're approaching the maximum sequence length
@@ -89,6 +104,12 @@ impl LLM {
             }
 
             let logits = input;
+            
+            // Safety check: ensure we have at least one token
+            if logits.shape()[0] == 0 {
+                break;
+            }
+            
             let last_logit = logits.row(logits.shape()[0] - 1).to_owned().insert_axis(Axis(0));
 
             // Softmax - convert activiations of each token to a probability distribution over the vocabulary
@@ -139,13 +160,11 @@ impl LLM {
                 // Backward pass
                 let mut grads_output = Self::compute_gradients_step(&probs, target_ids); // this is d_L/d_output_projection
                 
-                // Apply gradient clipping
-                Self::clip_gradients(&mut grads_output, 1.0);
+                // Apply gradient clipping BEFORE backpropagation
+                Self::clip_gradients(&mut grads_output, 5.0);
                 
                 for layer in self.network.iter_mut().rev() {
                     grads_output = layer.backward(&grads_output, lr);
-                    // Apply gradient clipping to intermediate gradients as well
-                    Self::clip_gradients(&mut grads_output, 1.0);
                 }
 
                 let tokens = Self::greedy_decode(&probs);
@@ -236,23 +255,28 @@ impl LLM {
         let mut loss = 0.0;
         for row_idx in 0..probs.shape()[0] {
             let prob_target = probs[[row_idx, target[row_idx]]]; // Get probability of correct token
-            loss -= prob_target.ln();
+            loss -= prob_target.max(1e-15).ln(); // Add numerical stability
         }
 
         loss / target.len() as f32
     }
 
     fn compute_gradients_step(probs: &Array2<f32>, target: &[usize]) -> Array2<f32> {
-        let mut grads = probs.clone();
+        let mut grads = probs.clone(); // Start with softmax probabilities
 
         if probs.shape()[0] != target.len() {
             panic!("Probs and target must have the same number of rows");
         }
         
-        // Process each row in the probability matrix
+        let batch_size = target.len() as f32;
+        
+        // Compute correct softmax + cross-entropy gradient: softmax - one_hot(target)
         for row_idx in 0..grads.shape()[0] {
-            grads[[row_idx, target[row_idx]]] -= 1.0; // Subtract 1.0 from the target column in each row
+            grads[[row_idx, target[row_idx]]] -= 1.0; // Convert to: p - y (where y is one-hot)
         }
+        
+        // Normalize by batch size for stable training
+        grads.mapv_inplace(|x| x / batch_size);
         
         grads
     }

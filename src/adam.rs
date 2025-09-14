@@ -23,13 +23,13 @@ impl Adam {
 
     pub fn step(&mut self, params: &mut Array2<f32>, grads: &Array2<f32>, lr: f32) {
         self.timestep += 1;
-        self.m = &self.m * self.beta1 + grads * (1.0 - self.beta1);
-        self.v = &self.v * self.beta2 + grads.mapv(|x| x * x) * (1.0 - self.beta2);
+        self.m = &self.m * self.beta1 + &(grads * (1.0 - self.beta1));
+        self.v = &self.v * self.beta2 + &(grads.mapv(|x| x * x) * (1.0 - self.beta2));
 
         let m_hat = &self.m / (1.0 - self.beta1.powi(self.timestep as i32));
         let v_hat = &self.v / (1.0 - self.beta2.powi(self.timestep as i32));
 
-        let update = m_hat.clone() / (v_hat.mapv(|x| x.sqrt()) + self.epsilon);
+        let update = m_hat / (v_hat.mapv(|x| x.sqrt()) + self.epsilon); // Removed unnecessary clone
 
         *params -= &(update * lr);
     }

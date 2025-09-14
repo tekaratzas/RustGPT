@@ -86,8 +86,8 @@ fn main() {
             for c in word.chars() {
                 if c.is_ascii_punctuation() {
                     if !current.is_empty() {
-                        vocab_set.insert(current);
-                        current = String::new();
+                        vocab_set.insert(current.clone()); // Clone to avoid moving
+                        current.clear(); // Use clear() instead of String::new()
                     }
                     vocab_set.insert(c.to_string());
                 } else {
@@ -100,7 +100,8 @@ fn main() {
         }
     }
     
-    let vocab_words: Vec<String> = vocab_set.into_iter().collect();
+    let mut vocab_words: Vec<String> = vocab_set.into_iter().collect();
+    vocab_words.sort(); // Sort for deterministic ordering
     let vocab_words_refs: Vec<&str> = vocab_words.iter().map(|s| s.as_str()).collect();
     let vocab = Vocab::new(vocab_words_refs);
 
@@ -127,7 +128,7 @@ fn main() {
     println!("\n=== TRAINING MODEL ===");
     println!("Training on {} examples for {} epochs with learning rate {}", 
              training_data.len(), 100, 0.001);
-    llm.train(training_data, 100, 0.001);
+    llm.train(training_data, 100, 0.001); // Increased from 0.0001 to 0.001
     
     println!("\n=== AFTER TRAINING ===");
     println!("Input: {}", string);

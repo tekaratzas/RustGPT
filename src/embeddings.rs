@@ -37,25 +37,31 @@ impl Embeddings {
 
     fn init_embeddings(vocab_size: usize, embedding_dim: usize) -> Array2<f32> {
         let mut rng = rand::rng();
-        let normal = Normal::new(0.0, 0.01).unwrap();
+        let normal = Normal::new(0.0, 0.02).unwrap(); // Increased for better learning
         Array2::from_shape_fn((vocab_size, embedding_dim), |_| normal.sample(&mut rng))
     }
 
     fn init_positional_embeddings(max_seq_len: usize, embedding_dim: usize) -> Array2<f32> {
         let mut rng = rand::rng();
-        let normal = Normal::new(0.0, 0.01).unwrap();
+        let normal = Normal::new(0.0, 0.02).unwrap(); // Increased for better learning
         Array2::from_shape_fn((max_seq_len, embedding_dim), |_| normal.sample(&mut rng))
     }
 
     fn get_token_embeddings(embeddings: &Array2<f32>, token_ids: &[usize]) -> Array2<f32> {
         let mut token_embeds = Array2::<f32>::zeros((token_ids.len(), embeddings.ncols()));
         for (i, &token_id) in token_ids.iter().enumerate() {
+            if token_id >= embeddings.nrows() {
+                panic!("Token ID {} out of bounds for vocab size {}", token_id, embeddings.nrows());
+            }
             token_embeds.row_mut(i).assign(&embeddings.row(token_id));
         }
         token_embeds
     }
 
     fn get_positional_embeddings(positional_encodings: &Array2<f32>, seq_len: usize) -> Array2<f32> {
+        if seq_len > positional_encodings.nrows() {
+            panic!("Sequence length {} exceeds maximum {}", seq_len, positional_encodings.nrows());
+        }
         positional_encodings.slice(s![0..seq_len, ..]).to_owned()
     }
 
@@ -98,14 +104,22 @@ impl Layer for Embeddings {
         let mut positional_grads = Array2::zeros(self.positional_embeddings.dim());
 
         for (i, &token_id) in token_ids.iter().enumerate() {
+            if token_id >= self.token_embeddings.nrows() {
+                panic!("Token ID {} out of bounds for vocab size {}", token_id, self.token_embeddings.nrows());
+            }
             let grad_row = grads.row(i);
-            let mut temp = token_grads.row(token_id).to_owned();
-            temp += &grad_row;
-            token_grads.row_mut(token_id).assign(&temp);
             
-            let mut temp = positional_grads.row(i).to_owned();
-            temp += &grad_row;
-            positional_grads.row_mut(i).assign(&temp);
+            // Accumulate token embedding gradients efficiently (no temp variable)
+            {
+                let mut token_row = token_grads.row_mut(token_id);
+                token_row += &grad_row;
+            }
+            
+            // Accumulate positional embedding gradients efficiently (no temp variable)
+            {
+                let mut pos_row = positional_grads.row_mut(i);
+                pos_row += &grad_row;
+            }
         }
 
         self.token_optimizer.step(&mut self.token_embeddings, &token_grads, lr);
