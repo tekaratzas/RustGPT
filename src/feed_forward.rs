@@ -2,7 +2,6 @@ use ndarray::Array2;
 use ndarray::Axis;
 use rand::prelude::*;
 use rand_distr::{Normal, Distribution};
-use crate::layer_norm::LayerNorm;
 use crate::{adam::Adam, llm::Layer};
 
 pub struct FeedForward {
@@ -10,7 +9,6 @@ pub struct FeedForward {
     b1: Array2<f32>,
     w2: Array2<f32>,
     b2: Array2<f32>,
-    norm: LayerNorm,
 
     // Cached values for backward pass
     input: Option<Array2<f32>>,
@@ -41,7 +39,6 @@ impl FeedForward {
             b1: Array2::zeros((1, hidden_dim)), // Bias initialized to 0
             w2: Array2::from_shape_fn((hidden_dim, embedding_dim), |_| normal_w2.sample(&mut rng)),
             b2: Array2::zeros((1, embedding_dim)), // Bias initialized to 0
-            norm: LayerNorm::new(embedding_dim),
             input: None,
             hidden_pre_activation: None,
             hidden_post_activation: None,
@@ -64,10 +61,9 @@ impl Layer for FeedForward {
         let hidden_pre_activation = self.hidden_pre_activation.as_ref().unwrap();
         let hidden_post_activation = self.hidden_post_activation.as_ref().unwrap();
 
-        let batch_size = input.shape()[0] as f32;
-
-        let grad_w2 = hidden_post_activation.t().dot(grads) / batch_size;
-        let grad_b2 = grads.mean_axis(Axis(0)).unwrap();
+        // Compute gradients for W2 and b2
+        let grad_w2 = hidden_post_activation.t().dot(grads);
+        let grad_b2 = grads.sum_axis(Axis(0)).insert_axis(Axis(0)); // Shape: [1, embedding_dim]
 
         // Gradient w.r.t. hidden_post_activation
         let grad_hidden_post_activation = grads.dot(&self.w2.t());
@@ -77,21 +73,22 @@ impl Layer for FeedForward {
         let grad_hidden_pre_activation = grad_hidden_post_activation * relu_grad;
 
         // Gradient w.r.t. W1 and b1
-        let grad_w1 = input.t().dot(&grad_hidden_pre_activation) / batch_size;
-        let grad_b1 = grad_hidden_pre_activation.mean_axis(Axis(0)).unwrap();
+        let grad_w1 = input.t().dot(&grad_hidden_pre_activation);
+        let grad_b1 = grad_hidden_pre_activation.sum_axis(Axis(0)).insert_axis(Axis(0)); // Shape: [1, hidden_dim]
 
         // Gradient w.r.t. input (through feed-forward computation)
         let grad_input_feedforward = grad_hidden_pre_activation.dot(&self.w1.t());
         
         // Add gradient from residual connection 
-        // Forward: residual = output + input, so gradient flows directly through
+        // Forward: output = W2(ReLU(W1*input + b1)) + b2 + input
+        // Backward: grad_input = grad_feedforward + grad_residual
         let grad_input = grad_input_feedforward + grads;
 
         // Update parameters via Adam optimizer
-        self.optimizer_w2.step(&mut self.w2, &grad_w2, lr); // lr is 0.01
-        self.optimizer_b2.step(&mut self.b2, &grad_b2.insert_axis(Axis(0)), lr);
+        self.optimizer_w2.step(&mut self.w2, &grad_w2, lr);
+        self.optimizer_b2.step(&mut self.b2, &grad_b2, lr);
         self.optimizer_w1.step(&mut self.w1, &grad_w1, lr);
-        self.optimizer_b1.step(&mut self.b1, &grad_b1.insert_axis(Axis(0)), lr);
+        self.optimizer_b1.step(&mut self.b1, &grad_b1, lr);
 
         grad_input
     }
@@ -108,7 +105,6 @@ impl Layer for FeedForward {
         self.hidden_pre_activation = Some(hidden_pre_activation);
         self.hidden_post_activation = Some(hidden_post_activation);
 
-        let residual = output + input; // residual connection
-        self.norm.normalize(&residual)
+        output + input // residual connection (no LayerNorm here)
     }
 }
