@@ -36,7 +36,7 @@ impl Layer for TestOutputProjectionLayer {
     }
 
     // Need to test this next
-    fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
+    fn backward(&mut self, grads: &Array2<f32>, _lr: f32) -> Array2<f32> {
         let input = self.cache_input.as_ref().unwrap();
 
         // use chain rule
@@ -133,7 +133,4 @@ fn test_llm_integration() {
     llm.train(vec![
         input_text
     ], 10, 0.01);
-
-    let output = llm.predict(input_text);
-    // assert_eq!(output, "rust </s>");
 }

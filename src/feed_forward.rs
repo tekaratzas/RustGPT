@@ -1,6 +1,5 @@
 use ndarray::Array2;
 use ndarray::Axis;
-use rand::prelude::*;
 use rand_distr::{Normal, Distribution};
 use crate::{adam::Adam, llm::Layer};
 

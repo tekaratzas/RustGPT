@@ -3,12 +3,6 @@ use ndarray::Array2;
 use llm::feed_forward::FeedForward;
 
 #[test]
-fn test_feed_forward_creation() {
-    // Create feed-forward module
-    let feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);
-}
-
-#[test]
 fn test_feed_forward_forward() {
     // Create feed-forward module
     let mut feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);

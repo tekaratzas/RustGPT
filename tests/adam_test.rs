@@ -4,7 +4,6 @@ use llm::adam::Adam;
 #[test]
 fn test_adam_initialization() {
     let shape = [2, 3];
-    let lr = 0.001;
     let adam = Adam::new((2, 3));
     
     // Check if momentum and velocity matrices are initialized to zeros
@@ -80,9 +79,6 @@ fn test_adam_with_negative_gradients() {
     let mut adam = Adam::new(shape);
     let mut params = Array2::ones(shape);
     let grads = Array2::from_shape_fn(shape, |_| -1.0);
-    
-    // Store initial parameters
-    let initial_params = params.clone();
     
     // Perform optimization step
     adam.step(&mut params, &grads, lr);

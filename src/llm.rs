@@ -14,10 +14,6 @@ pub trait Layer {
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32>;
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32>;
-
-    // I want to use this, but some layers don't have a fixed input or output shape. It's dependent on the Sequence Length.
-    // fn input_shape(&self) -> &[usize];
-    // fn output_shape(&self) -> &[usize];
 }
 
 pub struct LLM {
@@ -137,7 +133,7 @@ impl LLM {
 
         for epoch in 0..epochs {
             let mut total_loss = 0.0;
-            for (training_row) in &tokenized_data {
+            for training_row in &tokenized_data {
                 if training_row.len() < 2 { continue; }
 
                 // 1. Slice input and targets

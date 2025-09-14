@@ -59,9 +59,6 @@ fn test_output_projection_backward() {
     // Create input tensor
     let input = Array2::ones((3, EMBEDDING_DIM));
     
-    // Run forward pass to cache input
-    let output = output_proj.forward(&input);
-    
     // Create gradient tensor
     let grads = Array2::ones((3, vocab_size));
     

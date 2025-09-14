@@ -31,6 +31,7 @@ impl Vocab {
     }
 
     /// Convert a token index back to a word
+    #[allow(dead_code)]
     pub fn decode(&self, token_id: usize) -> Option<&String> {
         self.decode.get(&token_id)
     }

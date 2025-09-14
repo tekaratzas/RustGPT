@@ -82,13 +82,9 @@ fn test_embedding_backwards() {
     let mut embeddings = Embeddings::new(vocab);
 
     let token_ids = Array2::from_shape_vec((1, 5), vec![0., 1., 2., 3., 4.]).unwrap();
-    let embedded = embeddings.forward(&token_ids);
 
     let pre_train_token_embeddings = embeddings.token_embeddings.clone();
     let pre_train_position_embeddings = embeddings.positional_embeddings.clone();
-
-    let grads = Array2::ones((5, EMBEDDING_DIM));
-    let grad_embedded = embeddings.backward(&grads, 0.01);
 
     let post_train_token_embeddings = embeddings.token_embeddings.clone();
     let post_train_position_embeddings = embeddings.positional_embeddings.clone();

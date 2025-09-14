@@ -1,5 +1,4 @@
 use ndarray::{s, Array2};
-use rand::prelude::*;
 use rand_distr::{Normal, Distribution};
 use crate::{vocab::Vocab, llm::Layer, EMBEDDING_DIM, MAX_SEQ_LEN, adam::Adam};
 

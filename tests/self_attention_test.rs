@@ -3,12 +3,6 @@ use ndarray::Array2;
 use llm::self_attention::SelfAttention;
 
 #[test]
-fn test_self_attention_creation() {
-    // Create self-attention module
-    let self_attention = SelfAttention::new(EMBEDDING_DIM);
-}
-
-#[test]
 fn test_self_attention_forward() {
     // Create self-attention module
     let mut self_attention = SelfAttention::new(EMBEDDING_DIM);

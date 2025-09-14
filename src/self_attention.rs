@@ -1,7 +1,6 @@
 use crate::adam::Adam;
 use crate::EMBEDDING_DIM;
 use ndarray::Array2;
-use rand::prelude::*;
 use rand_distr::{Normal, Distribution};
 use crate::llm::Layer;
 use std::f32;
@@ -154,7 +153,6 @@ impl Layer for SelfAttention {
         }
         
         let attn_weights = self.softmax(&scores); // also cached
-        let attn_output = attn_weights.dot(&v); // also cached
     
         // Step 1: grads = ∂L/∂attn_output
         let grad_attn_weights = grads.dot(&v.t());
