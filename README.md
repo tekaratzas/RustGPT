@@ -150,4 +150,40 @@ Perfect for understanding how modern LLMs work under the hood!
 - `ndarray` - N-dimensional arrays for matrix operations
 - `rand` + `rand_distr` - Random number generation for initialization
 
-No PyTorch, TensorFlow, or Candle - just pure Rust and linear algebra! 
+No PyTorch, TensorFlow, or Candle - just pure Rust and linear algebra!
+
+## 🤝 Contributing
+
+Contributions are welcome! This project is perfect for learning and experimentation.
+
+### High Priority Features Needed
+- **🏪 Model Persistence** - Save/load trained parameters to disk (currently all in-memory)
+- **⚡ Performance optimizations** - SIMD, parallel training, memory efficiency
+- **🎯 Better sampling** - Beam search, top-k/top-p, temperature scaling
+- **📊 Evaluation metrics** - Perplexity, benchmarks, training visualizations
+
+### Areas for Improvement
+- **Advanced architectures** (multi-head attention, positional encoding, RoPE)
+- **Training improvements** (different optimizers, learning rate schedules, regularization)
+- **Data handling** (larger datasets, tokenizer improvements, streaming)
+- **Model analysis** (attention visualization, gradient analysis, interpretability)
+
+### Getting Started
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/model-persistence`
+3. Make your changes and add tests
+4. Run the test suite: `cargo test`
+5. Submit a pull request with a clear description
+
+### Code Style
+- Follow standard Rust conventions (`cargo fmt`)
+- Add comprehensive tests for new features
+- Update documentation and README as needed
+- Keep the "from scratch" philosophy - avoid heavy ML dependencies
+
+### Ideas for Contributions
+- 🚀 **Beginner**: Model save/load, more training data, config files
+- 🔥 **Intermediate**: Beam search, positional encodings, training checkpoints
+- ⚡ **Advanced**: Multi-head attention, layer parallelization, custom optimizations
+
+Questions? Open an issue or start a discussion! 

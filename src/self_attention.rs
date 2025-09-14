@@ -7,7 +7,6 @@ use std::f32;
 
 pub struct SelfAttention {
     pub embedding_dim: usize,
-    //pub num_heads: usize,
     w_q: Array2<f32>, // Weight matrices for Q, K, V
     w_k: Array2<f32>,
     w_v: Array2<f32>,
