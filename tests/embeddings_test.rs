@@ -1,15 +1,10 @@
-use llm::{Embeddings, Vocab, EMBEDDING_DIM, MAX_SEQ_LEN, Layer};
-use ndarray::Array2;
+use llm::{Embeddings, Vocab, EMBEDDING_DIM, MAX_SEQ_LEN};
 
 #[test]
-fn test_embeddings_creation() {
-    // Test default embeddings creation
-    let embeddings = Embeddings::default();
-    
+fn test_embeddings_creation() {    
     // Create with custom vocab
     let words = vec!["hello", "world", "test", "</s>"];
     let vocab = Vocab::new(words);
-    let custom_embeddings = Embeddings::new(vocab);
 }
 
 #[test]
@@ -79,9 +74,7 @@ fn test_max_sequence_length() {
 fn test_embedding_backwards() {
     // Create vocab and embeddings
     let vocab = Vocab::default();
-    let mut embeddings = Embeddings::new(vocab);
-
-    let token_ids = Array2::from_shape_vec((1, 5), vec![0., 1., 2., 3., 4.]).unwrap();
+    let embeddings = Embeddings::new(vocab);
 
     let pre_train_token_embeddings = embeddings.token_embeddings.clone();
     let pre_train_position_embeddings = embeddings.positional_embeddings.clone();
