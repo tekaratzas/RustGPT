@@ -59,6 +59,9 @@ fn test_output_projection_backward() {
     // Create input tensor
     let input = Array2::ones((3, EMBEDDING_DIM));
     
+    // Forward pass first (required to cache input)
+    let _output = output_proj.forward(&input);
+    
     // Create gradient tensor
     let grads = Array2::ones((3, vocab_size));
     
@@ -92,7 +95,7 @@ fn test_output_projection_training() {
     // Run multiple training steps
     for _ in 0..5 {
         // Forward pass
-        let output = output_proj.forward(&input);
+        let _output = output_proj.forward(&input);
         
         // Create gradient tensor (simulating cross-entropy loss gradients)
         let mut grads = Array2::zeros((3, vocab_size));

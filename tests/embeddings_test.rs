@@ -1,10 +1,10 @@
-use llm::{Embeddings, Vocab, EMBEDDING_DIM, MAX_SEQ_LEN};
+use llm::{Embeddings, Vocab, Layer, EMBEDDING_DIM, MAX_SEQ_LEN};
 
 #[test]
 fn test_embeddings_creation() {    
     // Create with custom vocab
     let words = vec!["hello", "world", "test", "</s>"];
-    let vocab = Vocab::new(words);
+    let _vocab = Vocab::new(words); // Fix unused variable warning
 }
 
 #[test]
@@ -74,10 +74,19 @@ fn test_max_sequence_length() {
 fn test_embedding_backwards() {
     // Create vocab and embeddings
     let vocab = Vocab::default();
-    let embeddings = Embeddings::new(vocab);
+    let mut embeddings = Embeddings::new(vocab);
 
     let pre_train_token_embeddings = embeddings.token_embeddings.clone();
     let pre_train_position_embeddings = embeddings.positional_embeddings.clone();
+
+    // Simulate forward and backward pass
+    use ndarray::Array2;
+    let input = Array2::from_shape_vec((1, 3), vec![0.0, 1.0, 2.0]).unwrap();
+    let _output = embeddings.forward(&input);
+    
+    // Create some dummy gradients and run backward pass
+    let grads = Array2::from_shape_vec((3, EMBEDDING_DIM), vec![0.1; 3 * EMBEDDING_DIM]).unwrap();
+    let _grad_input = embeddings.backward(&grads, 0.01);
 
     let post_train_token_embeddings = embeddings.token_embeddings.clone();
     let post_train_position_embeddings = embeddings.positional_embeddings.clone();
