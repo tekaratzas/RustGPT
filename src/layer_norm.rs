@@ -69,7 +69,7 @@ impl Layer for LayerNorm {
         // Gradient w.r.t. normalized values
         let grad_normalized = &self.gamma * grads;
         
-        // Correct LayerNorm backward pass with full chain rule
+        // LayerNorm backward pass with full chain rule
         let grad_input = {
             let variance = std * std + self.epsilon;
             let grad_var = (&grad_normalized * &normalized).sum_axis(Axis(1)).insert_axis(Axis(1)) * (-0.5) / variance.mapv(|x| x * x.sqrt());

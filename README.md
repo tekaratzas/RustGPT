@@ -1,52 +1,153 @@
-# Rust LLM Project
+# 🦀 Rust LLM from Scratch
 
-A simple implementation of a language model in Rust.
+A complete **Large Language Model implementation in pure Rust** with no external ML frameworks. Built from the ground up using only `ndarray` for matrix operations.
 
-## Project Structure
+## 🚀 What This Is
 
-- `src/`: Source code
-  - `lib.rs`: Library exports
-  - `main.rs`: Main entry point
-  - `llm.rs`: LLM implementation
-  - `transformer.rs`: Transformer block implementation
-  - `vocab.rs`: Vocabulary handling
-  - `embeddings.rs`: Token embedding implementation
-  - `feed_forward.rs`: Feed-forward network implementation
-  - `self_attention.rs`: Self-attention mechanism implementation
-  - `output_projection.rs`: Output projection layer
+This project demonstrates how to build a transformer-based language model from scratch in Rust, including:
+- **Pre-training** on factual text completion
+- **Instruction tuning** for conversational AI
+- **Interactive chat mode** for testing
+- **Full backpropagation** with gradient clipping
+- **Modular architecture** with clean separation of concerns
 
-- `tests/`: Test files
-  - `vocab_test.rs`: Tests for vocabulary functionality
-  - `transformer_test.rs`: Tests for transformer block
-  - `llm_test.rs`: Tests for the LLM implementation
-  - `embeddings_test.rs`: Tests for the embeddings component
-  - `self_attention_test.rs`: Tests for the self-attention mechanism
-  - `feed_forward_test.rs`: Tests for the feed-forward network
+## 🔍 Key Files to Explore
 
-## Running the Project
+Start with these two core files to understand the implementation:
 
-```bash
-# Run the main application
-cargo run
+- **[`src/main.rs`](src/main.rs)** - Training pipeline, data preparation, and interactive mode
+- **[`src/llm.rs`](src/llm.rs)** - Core LLM implementation with forward/backward passes and training logic
 
-# Build the project
-cargo build
+## 🏗️ Architecture
+
+The model uses a **transformer-based architecture** with the following components:
+
+```
+Input Text → Tokenization → Embeddings → Transformer Blocks → Output Projection → Predictions
 ```
 
-## Running Tests
+### Project Structure
+
+```
+src/
+├── main.rs              # 🎯 Training pipeline and interactive mode
+├── llm.rs               # 🧠 Core LLM implementation and training logic
+├── lib.rs               # 📚 Library exports and constants
+├── transformer.rs       # 🔄 Transformer block (attention + feed-forward)
+├── self_attention.rs    # 👀 Multi-head self-attention mechanism  
+├── feed_forward.rs      # ⚡ Position-wise feed-forward networks
+├── embeddings.rs        # 📊 Token embedding layer
+├── output_projection.rs # 🎰 Final linear layer for vocabulary predictions
+├── vocab.rs            # 📝 Vocabulary management and tokenization
+├── layer_norm.rs       # 🧮 Layer normalization
+└── adam.rs             # 🏃 Adam optimizer implementation
+
+tests/
+├── llm_test.rs         # Tests for core LLM functionality
+├── transformer_test.rs # Tests for transformer blocks
+├── self_attention_test.rs # Tests for attention mechanisms
+├── feed_forward_test.rs # Tests for feed-forward layers
+├── embeddings_test.rs  # Tests for embedding layers
+├── vocab_test.rs       # Tests for vocabulary handling
+├── adam_test.rs        # Tests for optimizer
+└── output_projection_test.rs # Tests for output layer
+```
+
+## 🧪 What The Model Learns
+
+The implementation includes two training phases:
+
+1. **Pre-training**: Learns basic world knowledge from factual statements
+   - "The sun rises in the east and sets in the west"
+   - "Water flows downhill due to gravity"
+   - "Mountains are tall and rocky formations"
+
+2. **Instruction Tuning**: Learns conversational patterns
+   - "User: How do mountains form? Assistant: Mountains are formed through tectonic forces..."
+   - Handles greetings, explanations, and follow-up questions
+
+## 🚀 Quick Start
+
+```bash
+# Clone and run
+git clone <your-repo>
+cd llm
+cargo run
+
+# The model will:
+# 1. Build vocabulary from training data
+# 2. Pre-train on factual statements (100 epochs)  
+# 3. Instruction-tune on conversational data (100 epochs)
+# 4. Enter interactive mode for testing
+```
+
+## 🎮 Interactive Mode
+
+After training, test the model interactively:
+
+```
+Enter prompt: How do mountains form?
+Model output: Mountains are formed through tectonic forces or volcanism over long geological time periods
+
+Enter prompt: What causes rain?
+Model output: Rain is caused by water vapor in clouds condensing into droplets that become too heavy to remain airborne
+```
+
+## 🧮 Technical Implementation
+
+### Model Configuration
+- **Vocabulary Size**: Dynamic (built from training data)
+- **Embedding Dimension**: 128
+- **Hidden Dimension**: 256  
+- **Max Sequence Length**: 80 tokens
+- **Architecture**: 3 Transformer blocks + embeddings + output projection
+
+### Training Details
+- **Optimizer**: Adam with gradient clipping
+- **Pre-training LR**: 0.0005 (100 epochs)
+- **Instruction Tuning LR**: 0.0001 (100 epochs)
+- **Loss Function**: Cross-entropy loss
+- **Gradient Clipping**: L2 norm capped at 5.0
+
+### Key Features
+- **Custom tokenization** with punctuation handling
+- **Greedy decoding** for text generation
+- **Gradient clipping** for training stability
+- **Modular layer system** with clean interfaces
+- **Comprehensive test coverage** for all components
+
+## 🔧 Development
 
 ```bash
 # Run all tests
 cargo test
 
-# Run tests for a specific component
-cargo test --test vocab_test
-cargo test --test transformer_test
+# Test specific components
 cargo test --test llm_test
-cargo test --test embeddings_test
+cargo test --test transformer_test
 cargo test --test self_attention_test
-cargo test --test feed_forward_test
 
-# Run tests with output
+# Build optimized version
+cargo build --release
+
+# Run with verbose output
 cargo test -- --nocapture
-``` 
+```
+
+## 🧠 Learning Resources
+
+This implementation demonstrates key ML concepts:
+- **Transformer architecture** (attention, feed-forward, layer norm)
+- **Backpropagation** through neural networks
+- **Language model training** (pre-training + fine-tuning)
+- **Tokenization** and vocabulary management
+- **Gradient-based optimization** with Adam
+
+Perfect for understanding how modern LLMs work under the hood!
+
+## 📊 Dependencies
+
+- `ndarray` - N-dimensional arrays for matrix operations
+- `rand` + `rand_distr` - Random number generation for initialization
+
+No PyTorch, TensorFlow, or Candle - just pure Rust and linear algebra! 

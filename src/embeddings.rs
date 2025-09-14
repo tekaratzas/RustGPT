@@ -75,14 +75,6 @@ impl Embeddings {
 }
 
 impl Layer for Embeddings {
-    // fn input_shape(&self) -> &[usize] {
-    //     &[MAX_SEQ_LEN]
-    // }
-
-    // fn output_shape(&self) -> &[usize] {
-    //     &[MAX_SEQ_LEN, EMBEDDING_DIM]
-    // }
-
     fn layer_type(&self) -> &str {
         "Embeddings"
     }

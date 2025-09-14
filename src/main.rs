@@ -195,8 +195,8 @@ fn main() {
     
     println!("\n=== PRE-TRAINING MODEL ===");
     println!("Pre-training on {} examples for {} epochs with learning rate {}", 
-             pretraining_data.len(), 200, 0.0005);
-    llm.train(pretraining_data, 200, 0.0005);
+             pretraining_data.len(), 100, 0.0005);
+    llm.train(pretraining_data, 100, 0.0005);
     
     println!("\n=== INSTRUCTION TUNING ===");
     println!("Instruction tuning on {} examples for {} epochs with learning rate {}", 
