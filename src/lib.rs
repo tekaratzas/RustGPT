@@ -7,11 +7,13 @@ pub mod self_attention;
 pub mod output_projection;
 pub mod adam;
 pub mod layer_norm;
+pub mod dataset_loader;
 // Re-export key structs for easier access
 pub use vocab::Vocab;
 pub use embeddings::Embeddings;
 pub use llm::LLM;
 pub use llm::Layer;
+pub use dataset_loader::Dataset;
 
 // Constants
 pub const MAX_SEQ_LEN: usize = 40;
