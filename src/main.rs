@@ -33,7 +33,10 @@ fn main() {
     vocab_set.insert("</s>".to_string());
     
     
-    let dataset = dataset_loader::Dataset::new(); // Placeholder, not used in this example
+    let dataset = dataset_loader::Dataset::new(
+        String::from("data/pretraining_data.json"),
+        String::from("data/chat_training_data.json"),
+    ); // Placeholder, not used in this example
 
     // Process all training examples for vocabulary
     // First process pre-training data
@@ -108,13 +111,13 @@ fn main() {
     
     println!("\n=== PRE-TRAINING MODEL ===");
     println!("Pre-training on {} examples for {} epochs with learning rate {}", 
-             dataset.raw_pretraining_data.len(), 100, 0.0005);
-    llm.train(dataset.raw_pretraining_data, 100, 0.0005);
+             dataset.pretraining_data.len(), 100, 0.0005);
+    llm.train(dataset.pretraining_data.iter().map(|s| s.as_str()).collect::<Vec<&str>>(), 100, 0.0005);
     
     println!("\n=== INSTRUCTION TUNING ===");
     println!("Instruction tuning on {} examples for {} epochs with learning rate {}", 
-             dataset.raw_chat_training_data.len(), 100, 0.0001);
-    llm.train(dataset.raw_chat_training_data, 100, 0.0001); // Much lower learning rate for stability
+             dataset.chat_training_data.len(), 100, 0.0001);
+    llm.train(dataset.chat_training_data.iter().map(|s| s.as_str()).collect::<Vec<&str>>(), 100, 0.0001); // Much lower learning rate for stability
     
     println!("\n=== AFTER TRAINING ===");
     println!("Input: {}", string);
