@@ -1,27 +1,26 @@
 use llm::{Layer, EMBEDDING_DIM};
 use ndarray::Array2;
 use llm::output_projection::OutputProjection;
+use llm::optimizer::OptimizerType;
 
 #[test]
 fn test_output_projection_creation() {
     let vocab_size = 10;
-    let output_proj = OutputProjection::new(EMBEDDING_DIM, vocab_size);
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let output_proj = OutputProjection::new(EMBEDDING_DIM, vocab_size, &optimizer_choice);
     
     // Check weight matrix dimensions
     assert_eq!(output_proj.w_out.shape(), [EMBEDDING_DIM, vocab_size]);
     
     // Check bias vector dimensions
     assert_eq!(output_proj.b_out.shape(), [1, vocab_size]);
-    
-    // Check optimizer dimensions
-    assert_eq!(output_proj.optimizer.m.shape(), [EMBEDDING_DIM, vocab_size]);
-    assert_eq!(output_proj.optimizer.v.shape(), [EMBEDDING_DIM, vocab_size]);
 }
 
 #[test]
 fn test_output_projection_forward() {
     let vocab_size = 10;
-    let mut output_proj = OutputProjection::new(EMBEDDING_DIM, vocab_size);
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let mut output_proj = OutputProjection::new(EMBEDDING_DIM, vocab_size, &optimizer_choice);
     
     // Create input tensor (batch_size=1, seq_len=3, embedding_dim=EMBEDDING_DIM)
     let input = Array2::ones((3, EMBEDDING_DIM));
@@ -36,7 +35,8 @@ fn test_output_projection_forward() {
 #[test]
 fn test_output_projection_with_different_sequence_lengths() {
     let vocab_size = 10;
-    let mut output_proj = OutputProjection::new(EMBEDDING_DIM, vocab_size);
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let mut output_proj = OutputProjection::new(EMBEDDING_DIM, vocab_size, &optimizer_choice);
     
     // Test with different sequence lengths
     for seq_len in 1..5 {
@@ -54,7 +54,8 @@ fn test_output_projection_with_different_sequence_lengths() {
 #[test]
 fn test_output_projection_backward() {
     let vocab_size = 10;
-    let mut output_proj = OutputProjection::new(EMBEDDING_DIM, vocab_size);
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let mut output_proj = OutputProjection::new(EMBEDDING_DIM, vocab_size, &optimizer_choice);
     
     // Create input tensor
     let input = Array2::ones((3, EMBEDDING_DIM));
@@ -87,7 +88,8 @@ fn test_output_projection_backward() {
 #[test]
 fn test_output_projection_training() {
     let vocab_size = 10;
-    let mut output_proj = OutputProjection::new(EMBEDDING_DIM, vocab_size);
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let mut output_proj = OutputProjection::new(EMBEDDING_DIM, vocab_size, &optimizer_choice);
     
     // Create input tensor
     let input = Array2::ones((3, EMBEDDING_DIM));
@@ -108,4 +110,4 @@ fn test_output_projection_training() {
     // Verify that parameters were updated
     assert_ne!(output_proj.w_out.sum(), 0.0);
     assert_ne!(output_proj.b_out.sum(), 0.0);
-} 
+}

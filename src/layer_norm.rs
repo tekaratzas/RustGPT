@@ -1,6 +1,5 @@
-use crate::adam::Adam;
-use ndarray::Array2;
-use ndarray::Axis;
+use ndarray::{Array2, Axis};
+use crate::optimizer::{new_optimizer, Optimizer, OptimizerType};
 use crate::llm::Layer;
 
 pub struct LayerNorm {
@@ -12,13 +11,13 @@ pub struct LayerNorm {
     cached_mean: Option<Array2<f32>>,
     cached_std: Option<Array2<f32>>,
 
-    optimizer_gamma: Adam,
-    optimizer_beta: Adam,
+    optimizer_gamma: Box<dyn Optimizer>,
+    optimizer_beta: Box<dyn Optimizer>,
 }
 
 impl LayerNorm {
     /// Initialize LayerNorm with learnable parameters
-    pub fn new(embedding_dim: usize) -> Self {
+    pub fn new(embedding_dim: usize, optimizer_type: &OptimizerType) -> Self {
         LayerNorm {
             epsilon: 1e-5,
             gamma: Array2::ones((1, embedding_dim)), // Initialize gamma to 1
@@ -26,8 +25,8 @@ impl LayerNorm {
             cached_input: None,
             cached_mean: None,
             cached_std: None,
-            optimizer_gamma: Adam::new((1, embedding_dim)),
-            optimizer_beta: Adam::new((1, embedding_dim)),
+            optimizer_gamma: new_optimizer(optimizer_type, (1, embedding_dim)),
+            optimizer_beta: new_optimizer(optimizer_type, (1, embedding_dim)),
         }
     }
 

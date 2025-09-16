@@ -1,7 +1,8 @@
 use ndarray::Array2;
 use ndarray::Axis;
 use rand_distr::{Normal, Distribution};
-use crate::{adam::Adam, llm::Layer};
+use crate::optimizer::{new_optimizer, Optimizer, OptimizerType};
+use crate::llm::Layer;
 
 pub struct FeedForward {
     w1: Array2<f32>,
@@ -14,15 +15,15 @@ pub struct FeedForward {
     hidden_pre_activation: Option<Array2<f32>>,
     hidden_post_activation: Option<Array2<f32>>,
 
-    optimizer_w1: Adam,
-    optimizer_b1: Adam,
-    optimizer_w2: Adam,
-    optimizer_b2: Adam,
+    optimizer_w1: Box<dyn Optimizer>,
+    optimizer_b1: Box<dyn Optimizer>,
+    optimizer_w2: Box<dyn Optimizer>,
+    optimizer_b2: Box<dyn Optimizer>,
 }
 
 impl FeedForward {
     /// Initialize a feedforward layer with random weights
-    pub fn new(embedding_dim: usize, hidden_dim: usize) -> Self {
+    pub fn new(embedding_dim: usize, hidden_dim: usize, optimizer_type: &OptimizerType) -> Self {
         let mut rng = rand::rng();
         
         // Xavier/He initialization for w1: std = sqrt(2 / fan_in)
@@ -41,10 +42,10 @@ impl FeedForward {
             input: None,
             hidden_pre_activation: None,
             hidden_post_activation: None,
-            optimizer_w1: Adam::new((embedding_dim, hidden_dim)),
-            optimizer_b1: Adam::new((1, hidden_dim)),
-            optimizer_w2: Adam::new((hidden_dim, embedding_dim)),
-            optimizer_b2: Adam::new((1, embedding_dim)),
+            optimizer_w1: new_optimizer(optimizer_type, (embedding_dim, hidden_dim)),
+            optimizer_b1: new_optimizer(optimizer_type, (1, hidden_dim)),
+            optimizer_w2: new_optimizer(optimizer_type, (hidden_dim, embedding_dim)),
+            optimizer_b2: new_optimizer(optimizer_type, (1, embedding_dim)),
         }
     }
 }
