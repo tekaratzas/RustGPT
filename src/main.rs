@@ -36,6 +36,7 @@ fn main() {
     let dataset = dataset_loader::Dataset::new(
         String::from("data/pretraining_data.json"),
         String::from("data/chat_training_data.json"),
+        dataset_loader::DatasetType::JSON,
     ); // Placeholder, not used in this example
 
     // Process all training examples for vocabulary
