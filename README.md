@@ -17,7 +17,7 @@ This project demonstrates how to build a transformer-based language model from s
 
 This is not a production grade LLM. It is so far away from the larger models.
 
-This is just a toy project that can demonstrates how these models work under the hood.
+This is just a toy project that demonstrates how these models work under the hood.
 
 ## 🔍 Key Files to Explore
 
