@@ -13,8 +13,10 @@ pub use dataset_loader::{Dataset, DatasetType};
 pub use embeddings::Embeddings;
 pub use llm::LLM;
 pub use llm::Layer;
+pub use output_projection::OutputProjection;
+pub use self_attention::SelfAttention;
+pub use transformer::TransformerBlock;
 pub use vocab::Vocab;
-
 // Constants
 pub const MAX_SEQ_LEN: usize = 40;
 pub const EMBEDDING_DIM: usize = 32;

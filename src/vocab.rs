@@ -1,5 +1,7 @@
 use std::collections::HashMap;
-#[derive(Clone)]
+
+use bincode::Encode;
+#[derive(Clone, Encode)]
 pub struct Vocab {
     pub encode: HashMap<String, usize>,
     pub decode: HashMap<usize, String>,
@@ -18,6 +20,7 @@ impl Vocab {
         let mut decode = HashMap::new();
 
         for (i, &word) in words.iter().enumerate() {
+            println!("Adding word: {word} to encoding: {i}");
             encode.insert(word.to_string(), i);
             decode.insert(i, word.to_string());
         }
@@ -42,5 +45,16 @@ impl Vocab {
 
     pub fn default_words() -> Vec<&'static str> {
         vec!["hello", "world", "this", "is", "rust", "</s>"]
+    }
+}
+
+impl Into<String> for Vocab {
+    fn into(self) -> String {
+        String::from_iter(
+            self.words
+                .iter()
+                .enumerate()
+                .map(|(i, str)| format!("({i},{str}),")),
+        )
     }
 }

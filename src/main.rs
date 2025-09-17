@@ -90,8 +90,8 @@ fn main() {
     let vocab = Vocab::new(vocab_words_refs);
 
     let transformer_block_1 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-    let transformer_block_2 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-    let transformer_block_3 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+    // let transformer_block_2 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+    // let transformer_block_3 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
     let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
     let embeddings = Embeddings::new(vocab.clone());
     let mut llm = LLM::new(
@@ -99,8 +99,8 @@ fn main() {
         vec![
             Box::new(embeddings),
             Box::new(transformer_block_1),
-            Box::new(transformer_block_2),
-            Box::new(transformer_block_3),
+            // Box::new(transformer_block_2),
+            // Box::new(transformer_block_3),
             Box::new(output_projection),
         ],
     );

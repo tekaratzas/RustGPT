@@ -13,6 +13,12 @@ This project demonstrates how to build a transformer-based language model from s
 - **Full backpropagation** with gradient clipping
 - **Modular architecture** with clean separation of concerns
 
+## ❌ What This Isn't
+
+This is not a production grade LLM. It is so far away from the larger models.
+
+This is just a toy project that demonstrates how these models work under the hood.
+
 ## 🔍 Key Files to Explore
 
 Start with these two core files to understand the implementation:
