@@ -78,8 +78,8 @@ The implementation includes two training phases:
 
 ```bash
 # Clone and run
-git clone <your-repo>
-cd llm
+git clone https://github.com/tekaratzas/RustGPT.git 
+cd RustGPT
 cargo run
 
 # The model will:
