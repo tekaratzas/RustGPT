@@ -1,13 +1,19 @@
 [package]
 name = "llm"
 version = "0.1.0"
+# 2024 = latest edition
 edition = "2024"
 
 [dependencies]
+bincode = "2.0.1"
 ndarray = "0.16.1"
 rand = "0.9.0"
 rand_distr = "0.5.0"
 
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+csv = "1.3"
 [dev-dependencies]
 # Add any test-specific dependencies here if needed
 
