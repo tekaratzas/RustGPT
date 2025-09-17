@@ -1,7 +1,7 @@
-use crate::self_attention::SelfAttention;
 use crate::feed_forward::FeedForward;
 use crate::layer_norm::LayerNorm;
 use crate::llm::Layer;
+use crate::self_attention::SelfAttention;
 use ndarray::Array2;
 pub struct TransformerBlock {
     attention: SelfAttention,
@@ -27,29 +27,29 @@ impl Layer for TransformerBlock {
     }
 
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32> {
-        // Standard Transformer architecture: attention + norm -> feedforward + norm  
+        // Standard Transformer architecture: attention + norm -> feedforward + norm
         let attention_out = self.attention.forward(input); // includes residual
         let norm1_out = self.norm1.normalize(&attention_out);
-        
+
         let feed_forward_out = self.feed_forward.forward(&norm1_out); // includes residual
         let norm2_out = self.norm2.normalize(&feed_forward_out);
-        
+
         norm2_out
     }
-    
+
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
         // Backward through second LayerNorm
         let grad_norm2 = self.norm2.backward(grads, lr);
-        
+
         // Backward through feed-forward (includes residual connection)
         let grad_ffn = self.feed_forward.backward(&grad_norm2, lr);
-        
-        // Backward through first LayerNorm  
+
+        // Backward through first LayerNorm
         let grad_norm1 = self.norm1.backward(&grad_ffn, lr);
-        
+
         // Backward through attention (includes residual connection)
         let grad_attn = self.attention.backward(&grad_norm1, lr);
 
         grad_attn
-    }   
+    }
 }

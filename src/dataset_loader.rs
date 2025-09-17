@@ -6,24 +6,26 @@ pub struct Dataset {
 pub enum DatasetType {
     JSON,
     CSV,
-    
 }
 
 impl Dataset {
-    pub fn new(pretraining_data_path: String, chat_training_data_path: String, type_of_data: DatasetType) -> Self {
+    pub fn new(
+        pretraining_data_path: String,
+        chat_training_data_path: String,
+        type_of_data: DatasetType,
+    ) -> Self {
         let pretraining_data: Vec<String>;
         let chat_training_data: Vec<String>;
-        
+
         match type_of_data {
             DatasetType::CSV => {
                 pretraining_data = get_data_from_csv(pretraining_data_path);
                 chat_training_data = get_data_from_csv(chat_training_data_path);
-            },
+            }
             DatasetType::JSON => {
                 pretraining_data = get_data_from_json(pretraining_data_path);
                 chat_training_data = get_data_from_json(chat_training_data_path);
-            },
-            
+            }
         }
 
         Dataset {
@@ -34,24 +36,20 @@ impl Dataset {
 }
 
 fn get_data_from_json(path: String) -> Vec<String> {
-    use std::fs;
     use serde_json;
+    use std::fs;
 
-    let data_json = fs::read_to_string(path)
-        .expect("Failed to read data file");
-    let data: Vec<String> = serde_json::from_str(&data_json)
-        .expect("Failed to parse data file");
+    let data_json = fs::read_to_string(path).expect("Failed to read data file");
+    let data: Vec<String> = serde_json::from_str(&data_json).expect("Failed to parse data file");
     data
 }
 
 fn get_data_from_csv(path: String) -> Vec<String> {
-    use std::fs::File;
     use csv::ReaderBuilder;
+    use std::fs::File;
 
     let file = File::open(path).expect("Failed to open CSV file");
-    let mut rdr = ReaderBuilder::new()
-        .has_headers(false)
-        .from_reader(file);
+    let mut rdr = ReaderBuilder::new().has_headers(false).from_reader(file);
     let mut data = Vec::new();
     for result in rdr.records() {
         let record = result.expect("Failed to read CSV record");
