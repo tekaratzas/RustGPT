@@ -1,4 +1,5 @@
 use llm::{Embeddings, Vocab, Layer, EMBEDDING_DIM, MAX_SEQ_LEN};
+use llm::optimizer::OptimizerType;
 
 #[test]
 fn test_embeddings_creation() {    
@@ -12,7 +13,8 @@ fn test_embed_tokens() {
     // Create vocab and embeddings
     let words = vec!["hello", "world", "test", "</s>"];
     let vocab = Vocab::new(words);
-    let embeddings = Embeddings::new(vocab.clone());
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let embeddings = Embeddings::new(vocab.clone(), &optimizer_choice);
     
     // Test embedding a single token
     let token_ids = vec![0]; // "hello"
@@ -34,7 +36,8 @@ fn test_positional_embeddings() {
     // Create vocab and embeddings
     let words = vec!["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
     let vocab = Vocab::new(words);
-    let embeddings = Embeddings::new(vocab);
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let embeddings = Embeddings::new(vocab, &optimizer_choice);
     
     // Test with different sequence lengths
     for seq_len in 1..5 {
@@ -60,7 +63,8 @@ fn test_positional_embeddings() {
 fn test_max_sequence_length() {
     // Create vocab and embeddings
     let vocab = Vocab::default();
-    let embeddings = Embeddings::new(vocab);
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let embeddings = Embeddings::new(vocab, &optimizer_choice);
     
     // Create a sequence at the maximum length
     let token_ids = vec![0; MAX_SEQ_LEN];
@@ -74,7 +78,8 @@ fn test_max_sequence_length() {
 fn test_embedding_backwards() {
     // Create vocab and embeddings
     let vocab = Vocab::default();
-    let mut embeddings = Embeddings::new(vocab);
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let mut embeddings = Embeddings::new(vocab, &optimizer_choice);
 
     let pre_train_token_embeddings = embeddings.token_embeddings.clone();
     let pre_train_position_embeddings = embeddings.positional_embeddings.clone();

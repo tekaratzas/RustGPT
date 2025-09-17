@@ -2,7 +2,9 @@ use crate::self_attention::SelfAttention;
 use crate::feed_forward::FeedForward;
 use crate::layer_norm::LayerNorm;
 use crate::llm::Layer;
+use crate::optimizer::OptimizerType;
 use ndarray::Array2;
+
 pub struct TransformerBlock {
     attention: SelfAttention,
     feed_forward: FeedForward,
@@ -11,15 +13,18 @@ pub struct TransformerBlock {
 }
 
 impl TransformerBlock {
-    pub fn new(embedding_dim: usize, hidden_dim: usize) -> Self {
+    // The 'new' function now accepts the optimizer type
+    pub fn new(embedding_dim: usize, hidden_dim: usize, optimizer_type: &OptimizerType) -> Self {
         TransformerBlock {
-            attention: SelfAttention::new(embedding_dim),
-            feed_forward: FeedForward::new(embedding_dim, hidden_dim),
-            norm1: LayerNorm::new(embedding_dim),
-            norm2: LayerNorm::new(embedding_dim),
+            // Pass the optimizer type to the child layers
+            attention: SelfAttention::new(embedding_dim, optimizer_type),
+            feed_forward: FeedForward::new(embedding_dim, hidden_dim, optimizer_type),
+            norm1: LayerNorm::new(embedding_dim, optimizer_type),
+            norm2: LayerNorm::new(embedding_dim, optimizer_type),
         }
     }
 }
+
 
 impl Layer for TransformerBlock {
     fn layer_type(&self) -> &str {

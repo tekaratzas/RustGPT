@@ -5,6 +5,7 @@ use output_projection::OutputProjection;
 use transformer::TransformerBlock;
 use llm::LLM;
 use vocab::Vocab;
+use crate::optimizer::OptimizerType;
 
 mod llm;
 mod embeddings;
@@ -13,8 +14,9 @@ mod transformer;
 mod feed_forward;
 mod self_attention;
 mod output_projection;
-mod adam;
 mod layer_norm;
+mod optimizer;
+mod optimizers;
 
 // Use the constants from lib.rs
 const MAX_SEQ_LEN: usize = 80;
@@ -147,8 +149,10 @@ fn main() {
     
     // Then process chat training data
     for row in &chat_training_data {
+        // Each row is a &str containing both user and assistant text
+        let combined_text = row;
         // Add words from outputs
-        for word in row.split_whitespace() {
+        for word in combined_text.split_whitespace() {
             // Handle punctuation by splitting it from words
             let mut current = String::new();
             for c in word.chars() {
@@ -173,11 +177,18 @@ fn main() {
     let vocab_words_refs: Vec<&str> = vocab_words.iter().map(|s| s.as_str()).collect();
     let vocab = Vocab::new(vocab_words_refs);
 
-    let transformer_block_1 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-    let transformer_block_2 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-    let transformer_block_3 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-    let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
-    let embeddings = Embeddings::new(vocab.clone());
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    // let optimizer_choice = OptimizerType::Adam; // You can easily switch back!
+    
+    println!("\nUsing optimizer: {:?}", std::mem::discriminant(&optimizer_choice));
+
+    // Pass the optimizer choice to each layer constructor
+    let embeddings = Embeddings::new(vocab.clone(), &optimizer_choice);
+    let transformer_block_1 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, &optimizer_choice);
+    let transformer_block_2 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, &optimizer_choice);
+    let transformer_block_3 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, &optimizer_choice);
+    let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len(), &optimizer_choice);
+    
     let mut llm = LLM::new(vocab, vec![
         Box::new(embeddings),
         Box::new(transformer_block_1),
@@ -194,14 +205,17 @@ fn main() {
     println!("Output: {}", llm.predict(&string));
     
     println!("\n=== PRE-TRAINING MODEL ===");
+    let pretraining_refs: Vec<&str> = pretraining_data.iter().map(|s| &**s).collect();
     println!("Pre-training on {} examples for {} epochs with learning rate {}", 
-             pretraining_data.len(), 100, 0.0005);
-    llm.train(pretraining_data, 100, 0.0005);
+             pretraining_refs.len(), 100, 0.0005);
+    llm.train(pretraining_refs, 100, 0.0005);
     
     println!("\n=== INSTRUCTION TUNING ===");
+    let chat_data_strings: Vec<String> = chat_training_data.iter().map(|s| s.to_string()).collect();
+    let chat_refs: Vec<&str> = chat_data_strings.iter().map(|s| s.as_str()).collect();
     println!("Instruction tuning on {} examples for {} epochs with learning rate {}", 
-             chat_training_data.len(), 100, 0.0001);
-    llm.train(chat_training_data, 100, 0.0001); // Much lower learning rate for stability
+             chat_refs.len(), 100, 0.0001);
+    llm.train(chat_refs, 100, 0.0001);
     
     println!("\n=== AFTER TRAINING ===");
     println!("Input: {}", string);

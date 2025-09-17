@@ -1,39 +1,29 @@
 use ndarray::{s, Array2};
 use rand_distr::{Normal, Distribution};
-use crate::{vocab::Vocab, llm::Layer, EMBEDDING_DIM, MAX_SEQ_LEN, adam::Adam};
+use crate::optimizer::{new_optimizer, Optimizer, OptimizerType};
+use crate::{vocab::Vocab, llm::Layer, EMBEDDING_DIM, MAX_SEQ_LEN};
 
 pub struct Embeddings {
     pub token_embeddings: Array2<f32>,
     pub positional_embeddings: Array2<f32>,
     pub cached_input: Option<Array2<f32>>,
-    pub token_optimizer: Adam,
-    pub positional_optimizer: Adam,
-}
-
-impl Default for Embeddings { 
-    fn default() -> Self {
-        Self { 
-            token_embeddings: Self::init_embeddings(Vocab::default_words().len(), EMBEDDING_DIM),
-            positional_embeddings: Self::init_positional_embeddings(MAX_SEQ_LEN, EMBEDDING_DIM),
-            cached_input: None,
-            token_optimizer: Adam::new((Vocab::default_words().len(), EMBEDDING_DIM)),
-            positional_optimizer: Adam::new((MAX_SEQ_LEN, EMBEDDING_DIM))
-        }
-    }
+    pub token_optimizer: Box<dyn Optimizer>,
+    pub positional_optimizer: Box<dyn Optimizer>,
 }
 
 impl Embeddings {
 
-    pub fn new(vocab: Vocab) -> Self {
+    pub fn new(vocab: Vocab, optimizer_type: &OptimizerType) -> Self {
+        let vocab_size = vocab.words.len();
         Self {
             token_embeddings: Self::init_embeddings(vocab.words.len(), EMBEDDING_DIM),
             positional_embeddings: Self::init_positional_embeddings(MAX_SEQ_LEN, EMBEDDING_DIM),
             cached_input: None,
-            token_optimizer: Adam::new((vocab.words.len(), EMBEDDING_DIM)),
-            positional_optimizer: Adam::new((MAX_SEQ_LEN, EMBEDDING_DIM)),
+            token_optimizer: new_optimizer(optimizer_type, (vocab_size, EMBEDDING_DIM)),
+            positional_optimizer: new_optimizer(optimizer_type, (MAX_SEQ_LEN, EMBEDDING_DIM)),
         }
     }
-
+    
     fn init_embeddings(vocab_size: usize, embedding_dim: usize) -> Array2<f32> {
         let mut rng = rand::rng();
         let normal = Normal::new(0.0, 0.02).unwrap(); // Increased for better learning

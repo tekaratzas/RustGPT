@@ -1,5 +1,4 @@
-use crate::adam::Adam;
-use crate::EMBEDDING_DIM;
+use crate::optimizer::{new_optimizer, Optimizer, OptimizerType};
 use ndarray::Array2;
 use rand_distr::{Normal, Distribution};
 use crate::llm::Layer;
@@ -7,29 +6,22 @@ use std::f32;
 
 pub struct SelfAttention {
     pub embedding_dim: usize,
-    w_q: Array2<f32>, // Weight matrices for Q, K, V
+    w_q: Array2<f32>,
     w_k: Array2<f32>,
     w_v: Array2<f32>,
-
     cached_input: Option<Array2<f32>>,
-
-    optimizer_w_q: Adam,
-    optimizer_w_k: Adam,
-    optimizer_w_v: Adam,
+    // Use the trait object for dynamic dispatch
+    optimizer_w_q: Box<dyn Optimizer>,
+    optimizer_w_k: Box<dyn Optimizer>,
+    optimizer_w_v: Box<dyn Optimizer>,
 }
 
-impl Default for SelfAttention {
-    fn default() -> Self {
-        SelfAttention::new(EMBEDDING_DIM)
-    }
-}
-    
+// Note: The Default implementation is removed as we now need to specify an optimizer.
 
 impl SelfAttention {
-    /// Initializes a Transformer with random Q, K, V weights
-    pub fn new(embedding_dim: usize) -> Self {
+    // The `new` function now takes an OptimizerType
+    pub fn new(embedding_dim: usize, optimizer_type: &OptimizerType) -> Self {
         let mut rng = rand::rng();
-        // Xavier/He initialization: std = sqrt(2 / fan_in)
         let std = (2.0 / embedding_dim as f32).sqrt();
         let normal = Normal::new(0.0, std).unwrap();
         
@@ -39,11 +31,13 @@ impl SelfAttention {
             w_k: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| normal.sample(&mut rng)),
             w_v: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| normal.sample(&mut rng)),
             cached_input: None,
-            optimizer_w_q: Adam::new((embedding_dim, embedding_dim)),
-            optimizer_w_k: Adam::new((embedding_dim, embedding_dim)),
-            optimizer_w_v: Adam::new((embedding_dim, embedding_dim)),
+            // Use the factory to create the chosen optimizer
+            optimizer_w_q: new_optimizer(optimizer_type, (embedding_dim, embedding_dim)),
+            optimizer_w_k: new_optimizer(optimizer_type, (embedding_dim, embedding_dim)),
+            optimizer_w_v: new_optimizer(optimizer_type, (embedding_dim, embedding_dim)),
         }
     }
+
 
     fn compute_qkv(&self, input: &Array2<f32>) -> (Array2<f32>, Array2<f32>, Array2<f32>) {
         let q = input.dot(&self.w_q); // Q = X * W_Q

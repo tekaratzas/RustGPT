@@ -2,6 +2,7 @@ use llm::{LLM, Vocab, Layer};
 use llm::Embeddings;
 use llm::output_projection::OutputProjection;
 use llm::EMBEDDING_DIM;
+use llm::optimizer::OptimizerType;
 use ndarray::Array2;
 
 struct TestOutputProjectionLayer {
@@ -120,9 +121,10 @@ fn test_llm_train() {
 fn test_llm_integration() {
     let vocab = Vocab::default();
     let vocab_size = vocab.encode.len();
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
 
-    let embeddings = Box::new(Embeddings::new(vocab.clone()));
-    let output_projection = Box::new(OutputProjection::new(EMBEDDING_DIM, vocab_size));
+    let embeddings = Box::new(Embeddings::new(vocab.clone(), &optimizer_choice));
+    let output_projection = Box::new(OutputProjection::new(EMBEDDING_DIM, vocab_size, &optimizer_choice));
 
     let mut llm = LLM::new(vocab.clone(), vec![
         embeddings,

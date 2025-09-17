@@ -1,11 +1,13 @@
 use llm::{Layer, EMBEDDING_DIM, HIDDEN_DIM};
 use ndarray::Array2;
 use llm::feed_forward::FeedForward;
+use llm::optimizer::OptimizerType;
 
 #[test]
 fn test_feed_forward_forward() {
     // Create feed-forward module
-    let mut feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let mut feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM, &optimizer_choice);
     
     // Create input tensor (batch_size=1, seq_len=3, embedding_dim=EMBEDDING_DIM)
     let input = Array2::ones((3, EMBEDDING_DIM));
@@ -20,7 +22,8 @@ fn test_feed_forward_forward() {
 #[test]
 fn test_feed_forward_with_different_sequence_lengths() {
     // Create feed-forward module
-    let mut feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let mut feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM, &optimizer_choice);
     
     // Test with different sequence lengths
     for seq_len in 1..5 {
@@ -38,7 +41,8 @@ fn test_feed_forward_with_different_sequence_lengths() {
 #[test]
 fn test_feed_forward_and_backward() {
     // Create feed-forward module
-    let mut feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM);
+    let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+    let mut feed_forward = FeedForward::new(EMBEDDING_DIM, HIDDEN_DIM, &optimizer_choice);
     
     // Create input tensor (batch_size=1, seq_len=3, embedding_dim=EMBEDDING_DIM)
     let input = Array2::ones((3, EMBEDDING_DIM));
@@ -46,7 +50,7 @@ fn test_feed_forward_and_backward() {
     // Test forward pass
     let output = feed_forward.forward(&input);
 
-    let grads = Array2::ones((3, HIDDEN_DIM));
+    let grads = Array2::ones((3, EMBEDDING_DIM));
 
     // Test backward pass
     let grad_input = feed_forward.backward(&grads, 0.01);

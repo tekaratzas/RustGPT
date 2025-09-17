@@ -7,6 +7,7 @@ use crate::output_projection::OutputProjection;
 use crate::EMBEDDING_DIM;
 use crate::HIDDEN_DIM;
 use crate::MAX_SEQ_LEN;
+use crate::optimizer::OptimizerType;
 use std::cmp::Ordering;
 pub trait Layer {
     fn layer_type(&self) -> &str;
@@ -23,12 +24,14 @@ pub struct LLM {
 
 impl Default for LLM {
     fn default() -> Self {
-        let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-        let output_projection = OutputProjection::new(EMBEDDING_DIM, Vocab::default_words().len());
+        let vocab = Vocab::default();
+        let optimizer_choice = OptimizerType::AdamW { weight_decay: 0.01 };
+        let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, &optimizer_choice);
+        let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len(), &optimizer_choice);
         Self {
-            vocab: Vocab::default(),
+            vocab: vocab.clone(),
             network: vec![
-                Box::new(Embeddings::default()),
+                Box::new(Embeddings::new(vocab, &optimizer_choice)),
                 Box::new(transformer_block),
                 Box::new(output_projection),
             ],
