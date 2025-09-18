@@ -1,8 +1,8 @@
-use crate::adam::Adam;
 use crate::EMBEDDING_DIM;
-use ndarray::Array2;
-use rand_distr::{Normal, Distribution};
+use crate::adam::Adam;
 use crate::llm::Layer;
+use ndarray::Array2;
+use rand_distr::{Distribution, Normal};
 use std::f32;
 
 pub struct SelfAttention {
@@ -23,7 +23,6 @@ impl Default for SelfAttention {
         SelfAttention::new(EMBEDDING_DIM)
     }
 }
-    
 
 impl SelfAttention {
     /// Initializes a Transformer with random Q, K, V weights
@@ -32,7 +31,7 @@ impl SelfAttention {
         // Xavier/He initialization: std = sqrt(2 / fan_in)
         let std = (2.0 / embedding_dim as f32).sqrt();
         let normal = Normal::new(0.0, std).unwrap();
-        
+
         SelfAttention {
             embedding_dim,
             w_q: Array2::from_shape_fn((embedding_dim, embedding_dim), |_| normal.sample(&mut rng)),
@@ -72,34 +71,33 @@ impl SelfAttention {
 
     fn softmax(&self, scores: &Array2<f32>) -> Array2<f32> {
         let mut result = scores.clone();
-        
+
         // Apply softmax row-wise
         for mut row in result.rows_mut() {
             let max_val = row.iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap();
             // Calculate exp for each element
             let exp_values: Vec<f32> = row.iter().map(|&x| (x - max_val).exp()).collect();
             let sum_exp: f32 = exp_values.iter().sum();
-            
+
             // Normalize by sum
             for (i, &exp_val) in exp_values.iter().enumerate() {
                 row[i] = exp_val / sum_exp;
             }
         }
-        
+
         result
     }
 
     fn softmax_backward(
-        softmax_output: &Array2<f32>,  // shape: [seq_len, vocab_size]
-        grad_output: &Array2<f32>,     // shape: [seq_len, vocab_size]
+        softmax_output: &Array2<f32>, // shape: [seq_len, vocab_size]
+        grad_output: &Array2<f32>,    // shape: [seq_len, vocab_size]
     ) -> Array2<f32> {
         let mut grad_input = softmax_output.clone(); // to hold the result
-    
-        for ((mut grad_row, softmax_row), grad_out_row) in
-            grad_input
-                .outer_iter_mut()
-                .zip(softmax_output.outer_iter())
-                .zip(grad_output.outer_iter())
+
+        for ((mut grad_row, softmax_row), grad_out_row) in grad_input
+            .outer_iter_mut()
+            .zip(softmax_output.outer_iter())
+            .zip(grad_output.outer_iter())
         {
             // dot product: y ⊙ dL/dy
             let dot = softmax_row
@@ -107,7 +105,7 @@ impl SelfAttention {
                 .zip(grad_out_row.iter())
                 .map(|(&y_i, &dy_i)| y_i * dy_i)
                 .sum::<f32>();
-    
+
             for ((g, &y_i), &dy_i) in grad_row
                 .iter_mut()
                 .zip(softmax_row.iter())
@@ -116,7 +114,7 @@ impl SelfAttention {
                 *g = y_i * (dy_i - dot);
             }
         }
-    
+
         grad_input
     }
 }
@@ -140,9 +138,9 @@ impl Layer for SelfAttention {
         let v = input.dot(&self.w_v);
         let dk = self.w_q.shape()[1] as f32;
         let scale = dk.sqrt();
-    
+
         let mut scores = q.dot(&k.t()) / scale;
-        
+
         // Apply causal masking - prevent attention to future tokens
         let seq_len = scores.shape()[0];
         for i in 0..seq_len {
@@ -150,40 +148,38 @@ impl Layer for SelfAttention {
                 scores[[i, j]] = f32::NEG_INFINITY;
             }
         }
-        
+
         let attn_weights = self.softmax(&scores); // also cached
-    
+
         // Step 1: grads = ∂L/∂attn_output
         let grad_attn_weights = grads.dot(&v.t());
         let grad_v = attn_weights.t().dot(grads);
-    
+
         // Step 2: softmax backward
         let grad_scores = SelfAttention::softmax_backward(&attn_weights, &grad_attn_weights); // [seq_len, seq_len]
-    
+
         // Step 3: ∂L/∂Q and ∂L/∂K
         let grad_q = grad_scores.dot(&k);
         let grad_k = grad_scores.t().dot(&q);
-    
+
         // Step 4: ∂L/∂W_q/W_k/W_v
         let grad_w_q = input.t().dot(&grad_q);
         let grad_w_k = input.t().dot(&grad_k);
         let grad_w_v = input.t().dot(&grad_v);
-    
+
         // Step 5: ∂L/∂input (gradient through attention computation)
         let grad_input_attention =
-            grad_q.dot(&self.w_q.t()) +
-            grad_k.dot(&self.w_k.t()) +
-            grad_v.dot(&self.w_v.t());
-    
-        // Step 6: Add gradient from residual connection 
+            grad_q.dot(&self.w_q.t()) + grad_k.dot(&self.w_k.t()) + grad_v.dot(&self.w_v.t());
+
+        // Step 6: Add gradient from residual connection
         // Forward: residual = attention + input, so gradient flows directly through
         let grad_input = grad_input_attention + grads;
-    
+
         // Step 7: update weights
         self.optimizer_w_q.step(&mut self.w_q, &grad_w_q, lr);
         self.optimizer_w_k.step(&mut self.w_k, &grad_w_k, lr);
         self.optimizer_w_v.step(&mut self.w_v, &grad_w_v, lr);
-    
-        grad_input        
+
+        grad_input
     }
 }
