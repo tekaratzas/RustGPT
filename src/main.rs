@@ -1,20 +1,20 @@
 use std::io::Write;
 
 use embeddings::Embeddings;
+use llm::LLM;
 use output_projection::OutputProjection;
 use transformer::TransformerBlock;
-use llm::LLM;
 use vocab::Vocab;
 
-mod llm;
-mod embeddings;
-mod vocab;
-mod transformer;
-mod feed_forward;
-mod self_attention;
-mod output_projection;
 mod adam;
+mod embeddings;
+mod feed_forward;
 mod layer_norm;
+mod llm;
+mod output_projection;
+mod self_attention;
+mod transformer;
+mod vocab;
 
 // Use the constants from lib.rs
 const MAX_SEQ_LEN: usize = 80;
@@ -27,10 +27,10 @@ fn main() {
 
     // Extract all unique words from training data to create vocabulary
     let mut vocab_set = std::collections::HashSet::new();
-    
+
     // Add end of sequence token
     vocab_set.insert("</s>".to_string());
-    
+
     // Pre-training data - simple text completion patterns
     let pretraining_data = vec![
         "The sun rises in the east and sets in the west </s>",
@@ -72,7 +72,6 @@ fn main() {
         ("User: How many neurons are in the human brain? Assistant: The human brain contains about 86 billion neurons that transmit information throughout the body </s>"),
         ("User: What is electricity? Assistant: Electricity is the flow of electrons through a conductor, often used to power devices </s>"),
         ("User: What is climate change? Assistant: Climate change refers to long-term shifts in temperatures and weather patterns on Earth </s>"),
-
         ("User: How long do oak trees live? Assistant: Oak trees can live for hundreds of years and produce acorns as their fruit </s>"),
         ("User: What happened to Pluto? Assistant: Pluto was reclassified from a planet to a dwarf planet in 2006 by astronomers </s>"),
         ("User: How is glass made? Assistant: Glass is made by heating sand, soda ash, and limestone to very high temperatures until they melt </s>"),
@@ -83,7 +82,6 @@ fn main() {
         ("User: What is Jupiter like? Assistant: Jupiter is the largest planet in our solar system and has dozens of moons </s>"),
         ("User: How fast does light travel? Assistant: Light travels at approximately 299,792 kilometers per second in a vacuum </s>"),
         ("User: What is gold used for? Assistant: Gold is a dense, soft metal often used in jewelry and electronics due to its conductivity </s>"),
-
         ("User: What covers most of Earth? Assistant: Most of the earth's surface is covered by water, primarily in oceans </s>"),
         ("User: How do bicycles work? Assistant: Bicycles are an efficient mode of transport that convert human energy into motion through gears </s>"),
         ("User: How is chocolate made? Assistant: Chocolate is made from roasted and ground cacao seeds, often sweetened and flavored </s>"),
@@ -94,7 +92,6 @@ fn main() {
         ("User: What did the printing press do? Assistant: The printing press revolutionized the spread of information in the 15th century </s>"),
         ("User: What is sound? Assistant: Sound is a vibration that travels through air, water, or solid materials to reach our ears </s>"),
         ("User: Why is carbon important? Assistant: Carbon is an essential element in organic chemistry, forming the basis of all life on Earth </s>"),
-
         ("User: What was the Library of Alexandria? Assistant: The library of alexandria was one of the most significant libraries of the ancient world </s>"),
         ("User: What do honeybees do? Assistant: Honeybees play a vital role in pollination, which supports ecosystems and agriculture </s>"),
         ("User: Are electric cars better? Assistant: Electric vehicles produce less air pollution than traditional gasoline-powered cars </s>"),
@@ -105,7 +102,6 @@ fn main() {
         ("User: How are language models trained? Assistant: Language models are trained using vast amounts of text to learn patterns in language </s>"),
         ("User: How do compasses work? Assistant: Compasses work by aligning a magnetic needle with the earth's magnetic field </s>"),
         ("User: What do vaccines do? Assistant: Vaccines help the immune system recognize and fight off specific pathogens </s>"),
-
         // Greeting and conversational patterns
         ("User: Hello! Assistant: Hello! How can I help you today? </s>"),
         ("User: Hi! Assistant: Hi there! What can I do for you? </s>"),
@@ -121,7 +117,7 @@ fn main() {
         ("User: I don't understand. Assistant: No problem! Let me try to explain it differently </s>"),
         ("User: What do you think? Assistant: Based on the information available, I think it's important to consider multiple perspectives </s>"),
     ];
-    
+
     // Process all training examples for vocabulary
     // First process pre-training data
     for text in &pretraining_data {
@@ -144,7 +140,7 @@ fn main() {
             }
         }
     }
-    
+
     // Then process chat training data
     for row in &chat_training_data {
         // Add words from outputs
@@ -167,7 +163,7 @@ fn main() {
             }
         }
     }
-    
+
     let mut vocab_words: Vec<String> = vocab_set.into_iter().collect();
     vocab_words.sort(); // Sort for deterministic ordering
     let vocab_words_refs: Vec<&str> = vocab_words.iter().map(|s| s.as_str()).collect();
@@ -178,31 +174,42 @@ fn main() {
     let transformer_block_3 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
     let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
     let embeddings = Embeddings::new(vocab.clone());
-    let mut llm = LLM::new(vocab, vec![
-        Box::new(embeddings),
-        Box::new(transformer_block_1),
-        Box::new(transformer_block_2),
-        Box::new(transformer_block_3),
-        Box::new(output_projection),
-    ]);
+    let mut llm = LLM::new(
+        vocab,
+        vec![
+            Box::new(embeddings),
+            Box::new(transformer_block_1),
+            Box::new(transformer_block_2),
+            Box::new(transformer_block_3),
+            Box::new(output_projection),
+        ],
+    );
 
     println!("\n=== MODEL INFORMATION ===");
     println!("Network architecture: {}", llm.network_description());
-    
+
     println!("\n=== BEFORE TRAINING ===");
     println!("Input: {}", string);
     println!("Output: {}", llm.predict(&string));
-    
+
     println!("\n=== PRE-TRAINING MODEL ===");
-    println!("Pre-training on {} examples for {} epochs with learning rate {}", 
-             pretraining_data.len(), 100, 0.0005);
+    println!(
+        "Pre-training on {} examples for {} epochs with learning rate {}",
+        pretraining_data.len(),
+        100,
+        0.0005
+    );
     llm.train(pretraining_data, 100, 0.0005);
-    
+
     println!("\n=== INSTRUCTION TUNING ===");
-    println!("Instruction tuning on {} examples for {} epochs with learning rate {}", 
-             chat_training_data.len(), 100, 0.0001);
+    println!(
+        "Instruction tuning on {} examples for {} epochs with learning rate {}",
+        chat_training_data.len(),
+        100,
+        0.0001
+    );
     llm.train(chat_training_data, 100, 0.0001); // Much lower learning rate for stability
-    
+
     println!("\n=== AFTER TRAINING ===");
     println!("Input: {}", string);
     let result = llm.predict(&string);
@@ -213,26 +220,28 @@ fn main() {
     println!("\n--- Interactive Mode ---");
     println!("Type a prompt and press Enter to generate text.");
     println!("Type 'exit' to quit.");
-    
+
     let mut input = String::new();
     loop {
         // Clear the input string
         input.clear();
-        
+
         // Prompt for user input
         print!("\nEnter prompt: ");
         std::io::stdout().flush().unwrap();
-        
+
         // Read user input
-        std::io::stdin().read_line(&mut input).expect("Failed to read input");
-        
+        std::io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read input");
+
         // Trim whitespace and check for exit command
         let trimmed_input = input.trim();
         if trimmed_input.eq_ignore_ascii_case("exit") {
             println!("Exiting interactive mode.");
             break;
         }
-        
+
         // Generate prediction based on user input with "User:" prefix
         let formatted_input = format!("User: {}", trimmed_input);
         let prediction = llm.predict(&formatted_input);
