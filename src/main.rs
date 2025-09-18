@@ -1,5 +1,6 @@
 use std::io::Write;
 
+use dataset_loader::{Dataset, DatasetType};
 use embeddings::Embeddings;
 use llm::LLM;
 use output_projection::OutputProjection;
@@ -32,10 +33,10 @@ fn main() {
     // Add end of sequence token
     vocab_set.insert("</s>".to_string());
 
-    let dataset = dataset_loader::Dataset::new(
+    let dataset = Dataset::new(
         String::from("data/pretraining_data.json"),
         String::from("data/chat_training_data.json"),
-        dataset_loader::DatasetType::JSON,
+        DatasetType::JSON,
     ); // Placeholder, not used in this example
 
     // Process all training examples for vocabulary
