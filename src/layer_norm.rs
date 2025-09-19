@@ -1,10 +1,10 @@
 use crate::adam::Adam;
+use crate::llm::Layer;
 use ndarray::Array2;
 use ndarray::Axis;
-use crate::llm::Layer;
 
 pub struct LayerNorm {
-    epsilon: f32,   // Small constant for stability
+    epsilon: f32,       // Small constant for stability
     gamma: Array2<f32>, // Learnable scaling parameter
     beta: Array2<f32>,  // Learnable bias parameter
 
@@ -58,32 +58,39 @@ impl Layer for LayerNorm {
         let input = self.cached_input.as_ref().unwrap();
         let mean = self.cached_mean.as_ref().unwrap();
         let std = self.cached_std.as_ref().unwrap();
-        
+
         let normalized = (input - mean) / (std + self.epsilon);
         let n_features = input.shape()[1] as f32; // Number of features per token
-        
+
         // Gradients w.r.t. gamma and beta
         let grad_gamma = (&normalized * grads).sum_axis(Axis(0)).insert_axis(Axis(0));
         let grad_beta = grads.sum_axis(Axis(0)).insert_axis(Axis(0));
-        
+
         // Gradient w.r.t. normalized values
         let grad_normalized = &self.gamma * grads;
-        
+
         // LayerNorm backward pass with full chain rule
         let grad_input = {
             let variance = std * std + self.epsilon;
-            let grad_var = (&grad_normalized * &normalized).sum_axis(Axis(1)).insert_axis(Axis(1)) * (-0.5) / variance.mapv(|x| x * x.sqrt());
-            let grad_mean = grad_normalized.sum_axis(Axis(1)).insert_axis(Axis(1)) * (-1.0) / (std + self.epsilon) + &grad_var * (input - mean).sum_axis(Axis(1)).insert_axis(Axis(1)) * (-2.0) / n_features;
-            
-            &grad_normalized / (std + self.epsilon) + 
-            &grad_var * 2.0 * (input - mean) / n_features + 
-            &grad_mean / n_features
+            let grad_var = (&grad_normalized * &normalized)
+                .sum_axis(Axis(1))
+                .insert_axis(Axis(1))
+                * (-0.5)
+                / variance.mapv(|x| x * x.sqrt());
+            let grad_mean = grad_normalized.sum_axis(Axis(1)).insert_axis(Axis(1)) * (-1.0)
+                / (std + self.epsilon)
+                + &grad_var * (input - mean).sum_axis(Axis(1)).insert_axis(Axis(1)) * (-2.0)
+                    / n_features;
+
+            &grad_normalized / (std + self.epsilon)
+                + &grad_var * 2.0 * (input - mean) / n_features
+                + &grad_mean / n_features
         };
-        
+
         // Update learnable parameters
         self.optimizer_gamma.step(&mut self.gamma, &grad_gamma, lr);
         self.optimizer_beta.step(&mut self.beta, &grad_beta, lr);
-        
+
         grad_input
     }
 }
