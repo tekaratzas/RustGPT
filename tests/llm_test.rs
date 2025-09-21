@@ -1,7 +1,7 @@
-use llm::EMBEDDING_DIM;
+use llm::{LLM, Vocab, Layer};
 use llm::Embeddings;
 use llm::output_projection::OutputProjection;
-use llm::{LLM, Layer, Vocab};
+use llm::EMBEDDING_DIM;
 use ndarray::Array2;
 
 struct TestOutputProjectionLayer {
@@ -43,7 +43,7 @@ impl Layer for TestOutputProjectionLayer {
         let grad_input = input.dot(grads);
         self.cached_grads = Some(grad_input.clone());
 
-        return grad_input;
+        return grad_input
     }
 }
 
@@ -64,15 +64,14 @@ impl TestOutputProjectionLayer {
 fn test_llm_tokenize() {
     let vocab = Vocab::default();
     let vocab_size = vocab.encode.len();
-    let llm = LLM::new(
-        vocab,
-        vec![Box::new(TestOutputProjectionLayer::new(5, 5, vocab_size))],
-    );
-
+    let llm = LLM::new(vocab, vec![
+        Box::new(TestOutputProjectionLayer::new(5, 5, vocab_size))
+    ]);
+    
     // Test tokenization
     let tokens = llm.tokenize("hello world");
     assert!(!tokens.is_empty());
-
+    
     // Test that tokens can be decoded back
     for token in tokens {
         assert!(llm.vocab.decode(token).is_some());
@@ -83,11 +82,10 @@ fn test_llm_tokenize() {
 fn test_llm_predict() {
     let vocab = Vocab::default();
     let vocab_size = vocab.encode.len();
-    let mut llm = LLM::new(
-        vocab.clone(),
-        vec![Box::new(TestOutputProjectionLayer::new(5, 5, vocab_size))],
-    );
-
+    let mut llm = LLM::new(vocab.clone(), vec![
+        Box::new(TestOutputProjectionLayer::new(5, 5, vocab_size))
+    ]);
+    
     // Test prediction
     let input_text = "hello world this is rust";
     let input_tokens = llm.tokenize(input_text);
@@ -95,24 +93,25 @@ fn test_llm_predict() {
     assert!(!result.is_empty());
 
     // Build expected output
-    let mut expected_tokens = vec![0; input_tokens.len()]
-        .iter()
-        .map(|x| vocab.decode[x].clone())
-        .collect::<Vec<String>>();
+    let mut expected_tokens = vec![0; input_tokens.len()].iter().map(|x| vocab.decode[x].clone()).collect::<Vec<String>>();
     expected_tokens.push("</s>".to_string());
     let expected_output = expected_tokens.join(" ");
 
-    assert_eq!(result, expected_output);
-}
+    assert_eq!(result, expected_output);    
+} 
 
 #[test]
 fn test_llm_train() {
     let vocab = Vocab::default();
     let vocab_size = vocab.encode.len();
     let layer = Box::new(TestOutputProjectionLayer::new(5, 1, vocab_size));
-    let mut llm = LLM::new(vocab.clone(), vec![layer]);
+    let mut llm = LLM::new(vocab.clone(), vec![
+        layer
+    ]);
 
-    let training_data = vec!["hello world this is rust."];
+    let training_data = vec![
+        "hello world this is rust.",
+    ];
 
     llm.train(training_data, 10, 0.01);
 }
@@ -125,8 +124,13 @@ fn test_llm_integration() {
     let embeddings = Box::new(Embeddings::new(vocab.clone()));
     let output_projection = Box::new(OutputProjection::new(EMBEDDING_DIM, vocab_size));
 
-    let mut llm = LLM::new(vocab.clone(), vec![embeddings, output_projection]);
+    let mut llm = LLM::new(vocab.clone(), vec![
+        embeddings,
+        output_projection
+    ]);
 
     let input_text = "hello world this is rust";
-    llm.train(vec![input_text], 10, 0.01);
+    llm.train(vec![
+        input_text
+    ], 10, 0.01);
 }
