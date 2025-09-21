@@ -1,22 +1,20 @@
 pub mod adam;
-pub mod dataset_loader;
 pub mod embeddings;
 pub mod feed_forward;
 pub mod layer_norm;
+pub mod dataset_loader;
 pub mod llm;
 pub mod output_projection;
 pub mod self_attention;
 pub mod transformer;
 pub mod vocab;
 // Re-export key structs for easier access
-pub use dataset_loader::{Dataset, DatasetType};
 pub use embeddings::Embeddings;
 pub use llm::LLM;
 pub use llm::Layer;
-pub use output_projection::OutputProjection;
-pub use self_attention::SelfAttention;
-pub use transformer::TransformerBlock;
+pub use dataset_loader::{Dataset, DatasetType};
 pub use vocab::Vocab;
+
 // Constants
 pub const MAX_SEQ_LEN: usize = 40;
 pub const EMBEDDING_DIM: usize = 32;
