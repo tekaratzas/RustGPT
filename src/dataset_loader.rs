@@ -2,7 +2,7 @@ pub struct Dataset {
     pub pretraining_data: Vec<String>,
     pub chat_training_data: Vec<String>,
 }
-
+#[allow(dead_code)]
 pub enum DatasetType {
     JSON,
     CSV,
