@@ -22,7 +22,11 @@ impl Vocab {
             decode.insert(i, word.to_string());
         }
 
-        Vocab { encode, decode, words: words.iter().map(|w| w.to_string()).collect() }
+        Vocab {
+            encode,
+            decode,
+            words: words.iter().map(|w| w.to_string()).collect(),
+        }
     }
 
     /// Convert a word to its token index
