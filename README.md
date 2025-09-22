@@ -107,9 +107,9 @@ Model output: Rain is caused by water vapor in clouds condensing into droplets t
 
 ### Model Configuration
 - **Vocabulary Size**: Dynamic (built from training data)
-- **Embedding Dimension**: 128
-- **Hidden Dimension**: 256  
-- **Max Sequence Length**: 80 tokens
+- **Embedding Dimension**: 32 (defined by `EMBEDDING_DIM` in `src/lib.rs`)
+- **Hidden Dimension**: 32 (defined by `HIDDEN_DIM` in `src/lib.rs`)
+- **Max Sequence Length**: 40 tokens (defined by `MAX_SEQ_LEN` in `src/lib.rs`)
 - **Architecture**: 3 Transformer blocks + embeddings + output projection
 
 ### Training Details
