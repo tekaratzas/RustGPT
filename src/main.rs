@@ -95,13 +95,16 @@ fn main() {
     let transformer_block_3 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
     let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
     let embeddings = Embeddings::new(vocab.clone());
-    let mut llm = LLM::new(vocab, vec![
-        Box::new(embeddings),
-        Box::new(transformer_block_1),
-        Box::new(transformer_block_2),
-        Box::new(transformer_block_3),
-        Box::new(output_projection),
-    ]);
+    let mut llm = LLM::new(
+        vocab,
+        vec![
+            Box::new(embeddings),
+            Box::new(transformer_block_1),
+            Box::new(transformer_block_2),
+            Box::new(transformer_block_3),
+            Box::new(output_projection),
+        ],
+    );
 
     println!("\n=== MODEL INFORMATION ===");
     println!("Network architecture: {}", llm.network_description());
