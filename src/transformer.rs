@@ -32,8 +32,9 @@ impl Layer for TransformerBlock {
         let norm1_out = self.norm1.normalize(&attention_out);
 
         let feed_forward_out = self.feed_forward.forward(&norm1_out); // includes residual
+        let norm2_out = self.norm2.normalize(&feed_forward_out);
 
-        self.norm2.normalize(&feed_forward_out)
+        norm2_out
     }
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32> {
@@ -48,6 +49,6 @@ impl Layer for TransformerBlock {
 
         // Backward through attention (includes residual connection)
 
-        self.attention.backward(&grad_norm1, lr)
+        grad_attn
     }
 }
