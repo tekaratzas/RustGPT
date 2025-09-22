@@ -44,7 +44,7 @@ src/
 ├── llm.rs               # 🧠 Core LLM implementation and training logic
 ├── lib.rs               # 📚 Library exports and constants
 ├── transformer.rs       # 🔄 Transformer block (attention + feed-forward)
-├── self_attention.rs    # 👀 Multi-head self-attention mechanism  
+├── self_attention.rs    # 👀 Multi-head self-attention mechanism
 ├── feed_forward.rs      # ⚡ Position-wise feed-forward networks
 ├── embeddings.rs        # 📊 Token embedding layer
 ├── output_projection.rs # 🎰 Final linear layer for vocabulary predictions
@@ -80,13 +80,13 @@ The implementation includes two training phases:
 
 ```bash
 # Clone and run
-git clone https://github.com/tekaratzas/RustGPT.git 
+git clone https://github.com/tekaratzas/RustGPT.git
 cd RustGPT
 cargo run
 
 # The model will:
 # 1. Build vocabulary from training data
-# 2. Pre-train on factual statements (100 epochs)  
+# 2. Pre-train on factual statements (100 epochs)
 # 3. Instruction-tune on conversational data (100 epochs)
 # 4. Enter interactive mode for testing
 ```
@@ -107,9 +107,9 @@ Model output: Rain is caused by water vapor in clouds condensing into droplets t
 
 ### Model Configuration
 - **Vocabulary Size**: Dynamic (built from training data)
-- **Embedding Dimension**: 32 (defined by `EMBEDDING_DIM` in `src/lib.rs`)
-- **Hidden Dimension**: 32 (defined by `HIDDEN_DIM` in `src/lib.rs`)
-- **Max Sequence Length**: 40 tokens (defined by `MAX_SEQ_LEN` in `src/lib.rs`)
+- **Embedding Dimension**: 80 (defined by `EMBEDDING_DIM` in `src/lib.rs`)
+- **Hidden Dimension**: 128 (defined by `HIDDEN_DIM` in `src/lib.rs`)
+- **Max Sequence Length**: 256 tokens (defined by `MAX_SEQ_LEN` in `src/lib.rs`)
 - **Architecture**: 3 Transformer blocks + embeddings + output projection
 
 ### Training Details
@@ -196,6 +196,6 @@ Contributions are welcome! This project is perfect for learning and experimentat
 - 🔥 **Intermediate**: Beam search, positional encodings, training checkpoints
 - ⚡ **Advanced**: Multi-head attention, layer parallelization, custom optimizations
 
-Questions? Open an issue or start a discussion! 
+Questions? Open an issue or start a discussion!
 
-No PyTorch, TensorFlow, or Candle - just pure Rust and linear algebra! 
+No PyTorch, TensorFlow, or Candle - just pure Rust and linear algebra!
