@@ -46,7 +46,7 @@ fn test_feed_forward_and_backward() {
     // Test forward pass
     let output = feed_forward.forward(&input);
 
-    let grads = Array2::ones((3, HIDDEN_DIM));
+    let grads = Array2::ones((3, EMBEDDING_DIM));
 
     // Test backward pass
     let grad_input = feed_forward.backward(&grads, 0.01);
