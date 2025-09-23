@@ -1,0 +1,73 @@
+permissions:
+  contents: read
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:    
+  RUST_TOOLCHAIN: stable
+
+name: Check
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    name: fmt
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}  
+          components: rustfmt
+      - run: cargo fmt --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    name: clippy
+    permissions:
+      contents: read
+      checks: write
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install ${{ env.RUST_TOOLCHAIN }}
+        uses: dtolnay/rust-toolchain@master  # master
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          components: clippy
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --workspace --all-features --all-targets -- -D warnings
+
+  typos:
+      runs-on: ubuntu-latest
+      name: typos
+      permissions:
+        contents: read
+      strategy:
+        fail-fast: false
+      steps:
+        - uses: actions/checkout@v4
+          with:
+            submodules: true
+        - name: Check spelling
+          uses: crate-ci/typos@master
+
+ 
