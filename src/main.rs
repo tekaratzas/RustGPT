@@ -1,10 +1,11 @@
 use std::io::Write;
 
-use embeddings::Embeddings;
-use llm::LLM;
-use output_projection::OutputProjection;
-use transformer::TransformerBlock;
-use vocab::Vocab;
+use crate::embeddings::Embeddings;
+use crate::llm::LLM;
+use crate::output_projection::OutputProjection;
+use crate::transformer::TransformerBlock;
+use crate::vocab::Vocab;
+use ::llm::{EMBEDDING_DIM, HIDDEN_DIM, MAX_SEQ_LEN};
 
 mod adam;
 mod embeddings;
@@ -15,11 +16,6 @@ mod output_projection;
 mod self_attention;
 mod transformer;
 mod vocab;
-
-// Use the constants from lib.rs
-const MAX_SEQ_LEN: usize = 80;
-const EMBEDDING_DIM: usize = 128;
-const HIDDEN_DIM: usize = 256;
 
 fn main() {
     // Mock input - test conversational format
@@ -187,6 +183,10 @@ fn main() {
 
     println!("\n=== MODEL INFORMATION ===");
     println!("Network architecture: {}", llm.network_description());
+    println!(
+        "Model configuration -> max_seq_len: {}, embedding_dim: {}, hidden_dim: {}",
+        MAX_SEQ_LEN, EMBEDDING_DIM, HIDDEN_DIM
+    );
 
     println!("\n=== BEFORE TRAINING ===");
     println!("Input: {}", string);
