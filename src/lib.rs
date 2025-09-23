@@ -9,8 +9,7 @@ pub mod transformer;
 pub mod vocab;
 // Re-export key structs for easier access
 pub use embeddings::Embeddings;
-pub use llm::LLM;
-pub use llm::Layer;
+pub use llm::{LLM, Layer};
 pub use vocab::Vocab;
 
 // Constants

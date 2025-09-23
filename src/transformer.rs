@@ -1,8 +1,8 @@
-use crate::feed_forward::FeedForward;
-use crate::layer_norm::LayerNorm;
-use crate::llm::Layer;
-use crate::self_attention::SelfAttention;
 use ndarray::Array2;
+
+use crate::{
+    feed_forward::FeedForward, layer_norm::LayerNorm, llm::Layer, self_attention::SelfAttention,
+};
 pub struct TransformerBlock {
     attention: SelfAttention,
     feed_forward: FeedForward,

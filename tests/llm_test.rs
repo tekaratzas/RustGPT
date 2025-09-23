@@ -1,7 +1,4 @@
-use llm::EMBEDDING_DIM;
-use llm::Embeddings;
-use llm::output_projection::OutputProjection;
-use llm::{LLM, Layer, Vocab};
+use llm::{EMBEDDING_DIM, Embeddings, LLM, Layer, Vocab, output_projection::OutputProjection};
 use ndarray::Array2;
 
 struct TestOutputProjectionLayer {
