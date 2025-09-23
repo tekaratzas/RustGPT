@@ -1,7 +1,7 @@
 # ref: https://docs.codecov.com/docs/codecovyml-reference
 coverage:
   # Hold ourselves to a high bar
-  range: 77..100
+  range: 55..100
   round: down
   precision: 1
   status:
