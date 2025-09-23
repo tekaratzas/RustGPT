@@ -104,6 +104,10 @@ fn main() {
 
     println!("\n=== MODEL INFORMATION ===");
     println!("Network architecture: {}", llm.network_description());
+    println!(
+        "Model configuration -> max_seq_len: {}, embedding_dim: {}, hidden_dim: {}",
+        MAX_SEQ_LEN, EMBEDDING_DIM, HIDDEN_DIM
+    );
 
     println!("\n=== BEFORE TRAINING ===");
     println!("Input: {}", string);
