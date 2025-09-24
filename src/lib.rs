@@ -11,8 +11,7 @@ pub mod vocab;
 // Re-export key structs for easier access
 pub use dataset_loader::{Dataset, DatasetType};
 pub use embeddings::Embeddings;
-pub use llm::LLM;
-pub use llm::Layer;
+pub use llm::{LLM, Layer};
 pub use vocab::Vocab;
 
 // Constants

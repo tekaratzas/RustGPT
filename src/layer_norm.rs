@@ -1,7 +1,6 @@
 use crate::adam::Adam;
 use crate::llm::Layer;
-use ndarray::Array2;
-use ndarray::Axis;
+use ndarray::{Array2, Axis};
 
 pub struct LayerNorm {
     epsilon: f32,       // Small constant for stability

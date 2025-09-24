@@ -120,15 +120,20 @@ fn main() {
         100,
         0.0005
     );
-    llm.train(
-        dataset
-            .pretraining_data
-            .iter()
-            .map(|s| s.as_str())
-            .collect::<Vec<&str>>(),
-        100,
-        0.0005,
-    );
+
+    let pretraining_examples: Vec<&str> = dataset
+        .pretraining_data
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
+
+    let chat_training_examples: Vec<&str> = dataset
+        .chat_training_data
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
+
+    llm.train(pretraining_examples, 100, 0.0005);
 
     println!("\n=== INSTRUCTION TUNING ===");
     println!(
@@ -137,15 +142,8 @@ fn main() {
         100,
         0.0001
     );
-    llm.train(
-        dataset
-            .chat_training_data
-            .iter()
-            .map(|s| s.as_str())
-            .collect::<Vec<&str>>(),
-        100,
-        0.0001,
-    ); // Much lower learning rate for stability
+
+    llm.train(chat_training_examples, 100, 0.0001); // Much lower learning rate for stability
 
     println!("\n=== AFTER TRAINING ===");
     println!("Input: {}", string);
