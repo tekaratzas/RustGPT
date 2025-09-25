@@ -5,9 +5,9 @@ use crate::MAX_SEQ_LEN;
 use crate::Vocab;
 use crate::output_projection::OutputProjection;
 use crate::transformer::TransformerBlock;
-use ndarray::Array1;
-use ndarray::{Array2, Axis};
+use ndarray::{Array1, Array2, Axis};
 use std::cmp::Ordering;
+
 pub trait Layer {
     fn layer_type(&self) -> &str;
 
@@ -138,7 +138,7 @@ impl LLM {
     pub fn train(&mut self, data: Vec<&str>, epochs: usize, lr: f32) {
         let tokenized_data = data
             .iter()
-            .map(|input| (self.tokenize(input)))
+            .map(|input| self.tokenize(input))
             .collect::<Vec<Vec<usize>>>();
 
         for epoch in 0..epochs {

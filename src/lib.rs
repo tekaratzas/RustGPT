@@ -1,4 +1,5 @@
 pub mod adam;
+pub mod dataset_loader;
 pub mod embeddings;
 pub mod feed_forward;
 pub mod layer_norm;
@@ -8,9 +9,9 @@ pub mod self_attention;
 pub mod transformer;
 pub mod vocab;
 // Re-export key structs for easier access
+pub use dataset_loader::{Dataset, DatasetType};
 pub use embeddings::Embeddings;
-pub use llm::LLM;
-pub use llm::Layer;
+pub use llm::{LLM, Layer};
 pub use vocab::Vocab;
 
 // Constants
