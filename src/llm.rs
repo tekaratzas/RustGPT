@@ -68,6 +68,38 @@ impl LLM {
         token_strs.join(" ")
     }
 
+    pub fn total_parameters(&self) -> usize {
+
+        // Calculate parameters based on model architecture
+        let vocab_size = self.vocab.words.len();
+        let layer_norm_learnable_parameters = 2; // gamma, beta.
+        let attention_distinct_matrices = 3; // w_q, w_k, w_v
+        let transformer_block_type = "TransformerBlock";
+        
+        // Embeddings parameters
+        let token_emb_params = vocab_size * EMBEDDING_DIM;
+        let pos_emb_params = MAX_SEQ_LEN * EMBEDDING_DIM;
+        
+        // Count transformer blocks by checking layer types
+        let transformer_blocks: usize = self.network
+            .iter()
+            .filter(|layer| layer.layer_type() == transformer_block_type)
+            .count();
+        
+        // Per transformer block parameters (number of parameters in each layer)
+        let layernorm_params = layer_norm_learnable_parameters * EMBEDDING_DIM; // gamma, beta
+        let attention_params = attention_distinct_matrices * EMBEDDING_DIM * EMBEDDING_DIM;
+        let feedforward_params = EMBEDDING_DIM * HIDDEN_DIM + HIDDEN_DIM + HIDDEN_DIM * EMBEDDING_DIM + EMBEDDING_DIM; // w1, b1, w2, b2
+        
+        // each block has 2 layer norms, attention, and feedforward: 
+        let per_block_params = attention_params + feedforward_params + layernorm_params + layernorm_params;
+        
+        // Output projection parameters
+        let output_params = EMBEDDING_DIM * vocab_size + vocab_size; // w_out, b_out
+        
+        token_emb_params + pos_emb_params + (transformer_blocks * per_block_params) + output_params
+    }
+
     fn forward(&mut self, text: &str) -> Vec<usize> {
         // Tokenize the input text
         let mut tokenized = self.tokenize(text);
