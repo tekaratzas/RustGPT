@@ -1,4 +1,4 @@
-use crate::adam::Adam;
+use crate::{adam::Adam};
 use crate::llm::Layer;
 use ndarray::{Array2, Axis};
 
@@ -91,5 +91,9 @@ impl Layer for LayerNorm {
         self.optimizer_beta.step(&mut self.beta, &grad_beta, lr);
 
         grad_input
+    }
+
+    fn parameters(&self) -> usize {
+        self.gamma.len() + self.beta.len()
     }
 }

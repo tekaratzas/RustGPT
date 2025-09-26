@@ -48,6 +48,11 @@ impl Layer for TestOutputProjectionLayer {
 
         return grad_input;
     }
+
+    fn parameters(&self) -> usize {
+        const NUM_PARAMETERS_TEST_LAYER: usize = 0;
+        NUM_PARAMETERS_TEST_LAYER
+    }
 }
 
 impl TestOutputProjectionLayer {

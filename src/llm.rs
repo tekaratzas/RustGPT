@@ -14,6 +14,8 @@ pub trait Layer {
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32>;
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32>;
+
+    fn parameters(&self) -> usize;
 }
 
 pub struct LLM {
@@ -51,6 +53,14 @@ impl LLM {
             .join(", ")
     }
 
+    pub fn total_parameters(&self) -> usize {
+        // Sum the parameters across all layers in the network
+        self.network
+            .iter()
+            .map(|layer: &Box<dyn Layer> | layer.parameters())
+            .sum::<usize>()
+    }
+
     pub fn predict(&mut self, text: &str) -> String {
         let output_tokens = self.forward(text);
 
@@ -66,37 +76,6 @@ impl LLM {
             .collect::<Vec<String>>();
 
         token_strs.join(" ")
-    }
-
-    pub fn total_parameters(&self) -> usize {
-        // Define Constants
-        const LAYER_NORM_LEARNABLE_PARAMETERS: usize = 2; // gamma, beta.
-        const ATTENTION_DISTINCT_MATRICES: usize = 3; // w_q, w_k, w_v
-        const TRANSFORMER_BLOCK_TYPE: &str = "TransformerBlock";
-        
-        // Embeddings parameters
-        let vocab_size: usize = self.vocab.words.len();
-        let token_emb_params = vocab_size * EMBEDDING_DIM;
-        let pos_emb_params = MAX_SEQ_LEN * EMBEDDING_DIM;
-        
-        // Count transformer blocks by checking layer types
-        let transformer_blocks: usize = self.network
-            .iter()
-            .filter(|layer| layer.layer_type() == TRANSFORMER_BLOCK_TYPE)
-            .count();
-        
-        // Per transformer block parameters (number of parameters in each layer)
-        let layernorm_params = LAYER_NORM_LEARNABLE_PARAMETERS * EMBEDDING_DIM; // gamma, beta
-        let attention_params = ATTENTION_DISTINCT_MATRICES * EMBEDDING_DIM * EMBEDDING_DIM;
-        let feedforward_params = EMBEDDING_DIM * HIDDEN_DIM + HIDDEN_DIM + HIDDEN_DIM * EMBEDDING_DIM + EMBEDDING_DIM; // w1, b1, w2, b2
-        
-        // each block has 2 layer norms, attention, and feedforward: 
-        let per_block_params = attention_params + feedforward_params + layernorm_params + layernorm_params;
-        
-        // Output projection parameters
-        let output_params = EMBEDDING_DIM * vocab_size + vocab_size; // w_out, b_out
-        
-        token_emb_params + pos_emb_params + (transformer_blocks * per_block_params) + output_params
     }
 
     fn forward(&mut self, text: &str) -> Vec<usize> {

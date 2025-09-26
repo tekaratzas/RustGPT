@@ -134,4 +134,8 @@ impl Layer for Embeddings {
         // Return gradient to propagate further back
         grads.to_owned()
     }
+
+    fn parameters(&self) -> usize {
+        self.token_embeddings.len() + self.positional_embeddings.len()
+    }
 }
