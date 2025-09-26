@@ -1,4 +1,4 @@
-use crate::{adam::Adam};
+use crate::adam::Adam;
 use crate::llm::Layer;
 use ndarray::{Array2, Axis};
 
