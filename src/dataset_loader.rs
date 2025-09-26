@@ -1,6 +1,6 @@
-use csv::ReaderBuilder;
-use serde_json;
 use std::fs;
+
+use csv::ReaderBuilder;
 
 pub struct Dataset {
     pub pretraining_data: Vec<String>,
@@ -8,6 +8,7 @@ pub struct Dataset {
 }
 
 #[allow(dead_code)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum DatasetType {
     JSON,
     CSV,
