@@ -109,6 +109,8 @@ fn main() {
         MAX_SEQ_LEN, EMBEDDING_DIM, HIDDEN_DIM
     );
 
+    println!("Total parameters: {}", llm.total_parameters());
+
     println!("\n=== BEFORE TRAINING ===");
     println!("Input: {}", string);
     println!("Output: {}", llm.predict(&string));

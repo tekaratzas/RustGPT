@@ -52,4 +52,8 @@ impl Layer for TransformerBlock {
 
         grad_attn
     }
+
+    fn parameters(&self) -> usize {
+        self.attention.parameters() + self.feed_forward.parameters() + self.norm1.parameters() + self.norm2.parameters()
+    }
 }

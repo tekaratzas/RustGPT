@@ -52,4 +52,8 @@ impl Layer for OutputProjection {
 
         grad_input
     }
+
+    fn parameters(&self) -> usize {
+        self.w_out.len() + self.b_out.len()
+    }
 }

@@ -107,4 +107,8 @@ impl Layer for FeedForward {
 
         output + input // residual connection (no LayerNorm here)
     }
+
+    fn parameters(&self) -> usize {
+        self.b1.len() + self.b2.len() + self.w1.len() + self.w2.len()
+    }
 }
