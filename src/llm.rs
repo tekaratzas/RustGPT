@@ -69,26 +69,25 @@ impl LLM {
     }
 
     pub fn total_parameters(&self) -> usize {
-
-        // Calculate parameters based on model architecture
-        let vocab_size = self.vocab.words.len();
-        let layer_norm_learnable_parameters = 2; // gamma, beta.
-        let attention_distinct_matrices = 3; // w_q, w_k, w_v
-        let transformer_block_type = "TransformerBlock";
+        // Define Constants
+        const LAYER_NORM_LEARNABLE_PARAMETERS: usize = 2; // gamma, beta.
+        const ATTENTION_DISTINCT_MATRICES: usize = 3; // w_q, w_k, w_v
+        const TRANSFORMER_BLOCK_TYPE: &str = "TransformerBlock";
         
         // Embeddings parameters
+        let vocab_size: usize = self.vocab.words.len();
         let token_emb_params = vocab_size * EMBEDDING_DIM;
         let pos_emb_params = MAX_SEQ_LEN * EMBEDDING_DIM;
         
         // Count transformer blocks by checking layer types
         let transformer_blocks: usize = self.network
             .iter()
-            .filter(|layer| layer.layer_type() == transformer_block_type)
+            .filter(|layer| layer.layer_type() == TRANSFORMER_BLOCK_TYPE)
             .count();
         
         // Per transformer block parameters (number of parameters in each layer)
-        let layernorm_params = layer_norm_learnable_parameters * EMBEDDING_DIM; // gamma, beta
-        let attention_params = attention_distinct_matrices * EMBEDDING_DIM * EMBEDDING_DIM;
+        let layernorm_params = LAYER_NORM_LEARNABLE_PARAMETERS * EMBEDDING_DIM; // gamma, beta
+        let attention_params = ATTENTION_DISTINCT_MATRICES * EMBEDDING_DIM * EMBEDDING_DIM;
         let feedforward_params = EMBEDDING_DIM * HIDDEN_DIM + HIDDEN_DIM + HIDDEN_DIM * EMBEDDING_DIM + EMBEDDING_DIM; // w1, b1, w2, b2
         
         // each block has 2 layer norms, attention, and feedforward: 
