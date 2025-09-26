@@ -1,7 +1,7 @@
-use crate::{adam::Adam, llm::Layer};
-use ndarray::Array2;
-use ndarray::Axis;
+use ndarray::{Array2, Axis};
 use rand_distr::{Distribution, Normal};
+
+use crate::{adam::Adam, llm::Layer};
 
 pub struct FeedForward {
     w1: Array2<f32>,

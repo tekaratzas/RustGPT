@@ -1,9 +1,9 @@
-use crate::EMBEDDING_DIM;
-use crate::adam::Adam;
-use crate::llm::Layer;
+use std::f32;
+
 use ndarray::Array2;
 use rand_distr::{Distribution, Normal};
-use std::f32;
+
+use crate::{EMBEDDING_DIM, adam::Adam, llm::Layer};
 
 pub struct SelfAttention {
     pub embedding_dim: usize,

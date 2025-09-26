@@ -1,13 +1,11 @@
-use crate::EMBEDDING_DIM;
-use crate::Embeddings;
-use crate::HIDDEN_DIM;
-use crate::MAX_SEQ_LEN;
-use crate::Vocab;
-use crate::output_projection::OutputProjection;
-use crate::transformer::TransformerBlock;
-use ndarray::{Array1, Array2, Axis};
 use std::cmp::Ordering;
 
+use ndarray::{Array1, Array2, Axis};
+
+use crate::{
+    EMBEDDING_DIM, Embeddings, HIDDEN_DIM, MAX_SEQ_LEN, Vocab, output_projection::OutputProjection,
+    transformer::TransformerBlock,
+};
 pub trait Layer {
     fn layer_type(&self) -> &str;
 
@@ -16,6 +14,7 @@ pub trait Layer {
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32>;
 }
 
+#[allow(clippy::upper_case_acronyms)]
 pub struct LLM {
     pub vocab: Vocab,
     pub network: Vec<Box<dyn Layer>>,
@@ -116,7 +115,8 @@ impl LLM {
                 .to_owned()
                 .insert_axis(Axis(0));
 
-            // Softmax - convert activiations of each token to a probability distribution over the vocabulary
+            // Softmax - convert activiations of each token to a probability distribution over the
+            // vocabulary
             let probs = Self::softmax(&last_logit); // 1 x vocab_size
 
             // Greedy Decode - Choose the highest probability token for each position
@@ -228,10 +228,10 @@ impl LLM {
             }
 
             // Add any remaining word
-            if !current_word.is_empty() {
-                if let Some(token_id) = self.vocab.encode(&current_word) {
-                    tokens.push(token_id);
-                }
+            if !current_word.is_empty()
+                && let Some(token_id) = self.vocab.encode(&current_word)
+            {
+                tokens.push(token_id);
             }
         }
 
