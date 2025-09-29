@@ -163,6 +163,5 @@ fn test_llm_total_parameters() {
     (2 * EMBEDDING_DIM) + // LayerNorm
     (EMBEDDING_DIM * HIDDEN_DIM + HIDDEN_DIM + HIDDEN_DIM * EMBEDDING_DIM + EMBEDDING_DIM); // FeedForward
     let expected_output_projection_parameters = EMBEDDING_DIM * vocab_size + vocab_size;
-    assert!(param_count == expected_embeddings_parameters + 
-        expected_transformer_block_parameters + expected_output_projection_parameters);
+    assert!(param_count == expected_embeddings_parameters + expected_transformer_block_parameters + expected_output_projection_parameters);
 }
