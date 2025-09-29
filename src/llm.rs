@@ -57,7 +57,7 @@ impl LLM {
         // Sum the parameters across all layers in the network
         self.network
             .iter()
-            .map(|layer: &Box<dyn Layer> | layer.parameters())
+            .map(|layer: &Box<dyn Layer>| layer.parameters())
             .sum::<usize>()
     }
 

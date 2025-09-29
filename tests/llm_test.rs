@@ -1,9 +1,9 @@
-use llm::transformer::TransformerBlock;
 use llm::EMBEDDING_DIM;
 use llm::Embeddings;
-use llm::output_projection::OutputProjection;
 use llm::HIDDEN_DIM;
 use llm::MAX_SEQ_LEN;
+use llm::output_projection::OutputProjection;
+use llm::transformer::TransformerBlock;
 use llm::{LLM, Layer, Vocab};
 use ndarray::Array2;
 
@@ -143,25 +143,32 @@ fn test_llm_integration() {
 fn test_llm_total_parameters() {
     let vocab = Vocab::default();
     let vocab_size = vocab.encode.len();
-    
+
     // Create an LLM with actual layers to get a meaningful parameter count
     let embeddings = Box::new(Embeddings::new(vocab.clone()));
     let transformer_block = Box::new(TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM));
     let output_projection = Box::new(OutputProjection::new(EMBEDDING_DIM, vocab_size));
-    
-    let llm = LLM::new(vocab.clone(), vec![embeddings, transformer_block, output_projection]);
-    
+
+    let llm = LLM::new(
+        vocab.clone(),
+        vec![embeddings, transformer_block, output_projection],
+    );
+
     // The total parameters should be greater than 0 for a model with actual layers
     let param_count = llm.total_parameters();
     assert!(param_count > 0);
 
     // Let's validate that this is equal to the expected total number of parameters. (based on our source)
     let expected_embeddings_parameters = vocab_size * EMBEDDING_DIM + MAX_SEQ_LEN * EMBEDDING_DIM;
-    let expected_transformer_block_parameters = 
-    (2 * EMBEDDING_DIM) + // LayerNorm
+    let expected_transformer_block_parameters = (2 * EMBEDDING_DIM) + // LayerNorm
     (3 * EMBEDDING_DIM * EMBEDDING_DIM) + // SelfAttention
     (2 * EMBEDDING_DIM) + // LayerNorm
     (EMBEDDING_DIM * HIDDEN_DIM + HIDDEN_DIM + HIDDEN_DIM * EMBEDDING_DIM + EMBEDDING_DIM); // FeedForward
     let expected_output_projection_parameters = EMBEDDING_DIM * vocab_size + vocab_size;
-    assert!(param_count == expected_embeddings_parameters + expected_transformer_block_parameters + expected_output_projection_parameters);
+    assert!(
+        param_count
+            == expected_embeddings_parameters
+                + expected_transformer_block_parameters
+                + expected_output_projection_parameters
+    );
 }

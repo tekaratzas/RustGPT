@@ -54,6 +54,9 @@ impl Layer for TransformerBlock {
     }
 
     fn parameters(&self) -> usize {
-        self.attention.parameters() + self.feed_forward.parameters() + self.norm1.parameters() + self.norm2.parameters()
+        self.attention.parameters()
+            + self.feed_forward.parameters()
+            + self.norm1.parameters()
+            + self.norm2.parameters()
     }
 }
