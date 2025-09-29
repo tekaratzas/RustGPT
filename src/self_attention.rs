@@ -182,4 +182,8 @@ impl Layer for SelfAttention {
 
         grad_input
     }
+
+    fn parameters(&self) -> usize {
+        self.w_k.len() + self.w_q.len() + self.w_v.len()
+    }
 }

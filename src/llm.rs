@@ -14,6 +14,8 @@ pub trait Layer {
     fn forward(&mut self, input: &Array2<f32>) -> Array2<f32>;
 
     fn backward(&mut self, grads: &Array2<f32>, lr: f32) -> Array2<f32>;
+
+    fn parameters(&self) -> usize;
 }
 
 pub struct LLM {
@@ -49,6 +51,14 @@ impl LLM {
             .map(|layer| layer.layer_type())
             .collect::<Vec<&str>>()
             .join(", ")
+    }
+
+    pub fn total_parameters(&self) -> usize {
+        // Sum the parameters across all layers in the network
+        self.network
+            .iter()
+            .map(|layer: &Box<dyn Layer>| layer.parameters())
+            .sum::<usize>()
     }
 
     pub fn predict(&mut self, text: &str) -> String {

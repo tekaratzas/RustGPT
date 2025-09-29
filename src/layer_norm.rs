@@ -92,4 +92,8 @@ impl Layer for LayerNorm {
 
         grad_input
     }
+
+    fn parameters(&self) -> usize {
+        self.gamma.len() + self.beta.len()
+    }
 }
