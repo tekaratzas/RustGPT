@@ -50,4 +50,11 @@ impl Layer for TransformerBlock {
 
         self.attention.backward(&grad_norm1, lr)
     }
+
+    fn parameters(&self) -> usize {
+        self.attention.parameters()
+            + self.feed_forward.parameters()
+            + self.norm1.parameters()
+            + self.norm2.parameters()
+    }
 }
