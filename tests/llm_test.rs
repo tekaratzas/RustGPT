@@ -1,5 +1,7 @@
-use llm::{EMBEDDING_DIM, Embeddings, LLM, Layer, Vocab, output_projection::OutputProjection};
-use llm::{LLM, Layer, Vocab};
+use llm::{
+    EMBEDDING_DIM, Embeddings, HIDDEN_DIM, LLM, Layer, MAX_SEQ_LEN, Vocab,
+    output_projection::OutputProjection, transformer::TransformerBlock,
+};
 use ndarray::Array2;
 
 struct TestOutputProjectionLayer {
@@ -153,7 +155,8 @@ fn test_llm_total_parameters() {
     let param_count = llm.total_parameters();
     assert!(param_count > 0);
 
-    // Let's validate that this is equal to the expected total number of parameters. (based on our source)
+    // Let's validate that this is equal to the expected total number of parameters. (based on our
+    // source)
     let expected_embeddings_parameters = vocab_size * EMBEDDING_DIM + MAX_SEQ_LEN * EMBEDDING_DIM;
     let expected_transformer_block_parameters = (2 * EMBEDDING_DIM) + // LayerNorm
     (3 * EMBEDDING_DIM * EMBEDDING_DIM) + // SelfAttention
