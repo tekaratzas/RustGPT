@@ -58,6 +58,26 @@ fn main() {
         "Seasons change throughout the year </s>",
         "Animals eat food to survive </s>",
         "Plants need sunlight and water to grow </s>",
+        "Deserts are dry regions with little rainfall </s>",
+        "The Earth revolves around the sun once a year </s>",
+        "Tornadoes are fast-spinning columns of air </s>",
+        "Rainbows form when light refracts through water droplets </s>",
+        "Caves are natural underground spaces </s>",
+        "Bees collect nectar to make honey </s>",
+        "Lava flows from erupting volcanoes </s>",
+        "Thunder follows lightning during a storm </s>",
+        "Leaves change color in autumn </s>",
+        "The ocean is salty and covers most of Earth </s>",
+        "Spiders spin webs to catch insects </s>",
+        "Dolphins are intelligent marine mammals </s>",
+        "Butterflies emerge from cocoons </s>",
+        "Seeds grow into plants when given water and sunlight </s>",
+        "The sky appears blue due to scattered sunlight </s>",
+        "Airplanes fly by generating lift with their wings </s>",
+        "Tides are caused by the moon's gravity </s>",
+        "Bamboo grows quickly and is used in construction </s>",
+        "Crystals form through a natural solidification process </s>",
+        "Caterpillars turn into butterflies through metamorphosis </s>"
     ];
 
     let chat_training_data = vec![
@@ -106,6 +126,23 @@ fn main() {
         ("User: How do compasses work? Assistant: Compasses work by aligning a magnetic needle with the earth's magnetic field </s>"),
         ("User: What do vaccines do? Assistant: Vaccines help the immune system recognize and fight off specific pathogens </s>"),
 
+        ("User: What causes earthquakes? Assistant: Earthquakes are caused by sudden movements of tectonic plates beneath Earth's surface </s>"),
+        ("User: How are clouds formed? Assistant: Clouds form when moist air rises and cools, causing water vapor to condense </s>"),
+        ("User: Why do leaves fall in autumn? Assistant: Leaves fall because trees prepare for winter by conserving energy and water </s>"),
+        ("User: How do magnets work? Assistant: Magnets work by generating a magnetic field that attracts certain materials like iron </s>"),
+        ("User: What are fossils? Assistant: Fossils are preserved remains or impressions of ancient organisms </s>"),
+        ("User: What is evaporation? Assistant: Evaporation is the process where liquid turns into vapor due to heat </s>"),
+        ("User: What is the ozone layer? Assistant: The ozone layer is a region of Earth's atmosphere that absorbs most of the sun's ultraviolet radiation </s>"),
+        ("User: Why do animals hibernate? Assistant: Animals hibernate to conserve energy during times of cold and food scarcity </s>"),
+        ("User: What is a black hole? Assistant: A black hole is a region in space where gravity is so strong that nothing can escape from it </s>"),
+        ("User: What is the water cycle? Assistant: The water cycle describes how water moves through evaporation, condensation, precipitation, and collection </s>"),
+        ("User: What is a constellation? Assistant: A constellation is a group of stars that form a recognizable pattern in the night sky </s>"),
+        ("User: What is renewable energy? Assistant: Renewable energy comes from sources that naturally replenish, such as wind, solar, and water </s>"),
+        ("User: How do ants live? Assistant: Ants live in colonies with structured roles, including workers, soldiers, and a queen </s>"),
+        ("User: What is a galaxy? Assistant: A galaxy is a massive system of stars, gas, dust, and dark matter held together by gravity </s>"),
+        ("User: Why do we see different phases of the moon? Assistant: The moon's phases result from its position relative to Earth and the sun </s>")
+
+
         // Greeting and conversational patterns
         ("User: Hello! Assistant: Hello! How can I help you today? </s>"),
         ("User: Hi! Assistant: Hi there! What can I do for you? </s>"),
@@ -120,6 +157,13 @@ fn main() {
         ("User: Can you explain that? Assistant: Of course! I'd be happy to explain in more detail </s>"),
         ("User: I don't understand. Assistant: No problem! Let me try to explain it differently </s>"),
         ("User: What do you think? Assistant: Based on the information available, I think it's important to consider multiple perspectives </s>"),
+        ("User: Thanks for your help. Assistant: You're very welcome! Let me know if you have more questions </s>"),
+        ("User: That makes sense. Assistant: I'm glad to hear that! Is there anything else you'd like to explore? </s>"),
+        ("User: Interesting! Assistant: I agree—it's fascinating! Would you like to dive deeper into the topic? </s>"),
+        ("User: Could you give me an example? Assistant: Sure! Here's an example that might help clarify things </s>"),
+        ("User: That's confusing. Assistant: No worries! Let me try to explain it another way </s>"),
+        ("User: Do you know more about that? Assistant: Absolutely! Here's some more information that might help </s>")
+
     ];
     
     // Process all training examples for vocabulary
