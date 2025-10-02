@@ -1,7 +1,10 @@
-use llm::{LLM, Vocab, Layer};
-use llm::Embeddings;
-use llm::output_projection::OutputProjection;
 use llm::EMBEDDING_DIM;
+use llm::Embeddings;
+use llm::HIDDEN_DIM;
+use llm::MAX_SEQ_LEN;
+use llm::output_projection::OutputProjection;
+use llm::transformer::TransformerBlock;
+use llm::{LLM, Layer, Vocab};
 use ndarray::Array2;
 
 struct TestOutputProjectionLayer {
@@ -43,7 +46,12 @@ impl Layer for TestOutputProjectionLayer {
         let grad_input = input.dot(grads);
         self.cached_grads = Some(grad_input.clone());
 
-        return grad_input
+        return grad_input;
+    }
+
+    fn parameters(&self) -> usize {
+        const NUM_PARAMETERS_TEST_LAYER: usize = 0;
+        NUM_PARAMETERS_TEST_LAYER
     }
 }
 
@@ -64,14 +72,15 @@ impl TestOutputProjectionLayer {
 fn test_llm_tokenize() {
     let vocab = Vocab::default();
     let vocab_size = vocab.encode.len();
-    let llm = LLM::new(vocab, vec![
-        Box::new(TestOutputProjectionLayer::new(5, 5, vocab_size))
-    ]);
-    
+    let llm = LLM::new(
+        vocab,
+        vec![Box::new(TestOutputProjectionLayer::new(5, 5, vocab_size))],
+    );
+
     // Test tokenization
     let tokens = llm.tokenize("hello world");
     assert!(!tokens.is_empty());
-    
+
     // Test that tokens can be decoded back
     for token in tokens {
         assert!(llm.vocab.decode(token).is_some());
@@ -82,10 +91,11 @@ fn test_llm_tokenize() {
 fn test_llm_predict() {
     let vocab = Vocab::default();
     let vocab_size = vocab.encode.len();
-    let mut llm = LLM::new(vocab.clone(), vec![
-        Box::new(TestOutputProjectionLayer::new(5, 5, vocab_size))
-    ]);
-    
+    let mut llm = LLM::new(
+        vocab.clone(),
+        vec![Box::new(TestOutputProjectionLayer::new(5, 5, vocab_size))],
+    );
+
     // Test prediction
     let input_text = "hello world this is rust";
     let input_tokens = llm.tokenize(input_text);
@@ -93,25 +103,24 @@ fn test_llm_predict() {
     assert!(!result.is_empty());
 
     // Build expected output
-    let mut expected_tokens = vec![0; input_tokens.len()].iter().map(|x| vocab.decode[x].clone()).collect::<Vec<String>>();
+    let mut expected_tokens = vec![0; input_tokens.len()]
+        .iter()
+        .map(|x| vocab.decode[x].clone())
+        .collect::<Vec<String>>();
     expected_tokens.push("</s>".to_string());
     let expected_output = expected_tokens.join(" ");
 
-    assert_eq!(result, expected_output);    
-} 
+    assert_eq!(result, expected_output);
+}
 
 #[test]
 fn test_llm_train() {
     let vocab = Vocab::default();
     let vocab_size = vocab.encode.len();
     let layer = Box::new(TestOutputProjectionLayer::new(5, 1, vocab_size));
-    let mut llm = LLM::new(vocab.clone(), vec![
-        layer
-    ]);
+    let mut llm = LLM::new(vocab.clone(), vec![layer]);
 
-    let training_data = vec![
-        "hello world this is rust.",
-    ];
+    let training_data = vec!["hello world this is rust."];
 
     llm.train(training_data, 10, 0.01);
 }
@@ -124,13 +133,42 @@ fn test_llm_integration() {
     let embeddings = Box::new(Embeddings::new(vocab.clone()));
     let output_projection = Box::new(OutputProjection::new(EMBEDDING_DIM, vocab_size));
 
-    let mut llm = LLM::new(vocab.clone(), vec![
-        embeddings,
-        output_projection
-    ]);
+    let mut llm = LLM::new(vocab.clone(), vec![embeddings, output_projection]);
 
     let input_text = "hello world this is rust";
-    llm.train(vec![
-        input_text
-    ], 10, 0.01);
+    llm.train(vec![input_text], 10, 0.01);
+}
+
+#[test]
+fn test_llm_total_parameters() {
+    let vocab = Vocab::default();
+    let vocab_size = vocab.encode.len();
+
+    // Create an LLM with actual layers to get a meaningful parameter count
+    let embeddings = Box::new(Embeddings::new(vocab.clone()));
+    let transformer_block = Box::new(TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM));
+    let output_projection = Box::new(OutputProjection::new(EMBEDDING_DIM, vocab_size));
+
+    let llm = LLM::new(
+        vocab.clone(),
+        vec![embeddings, transformer_block, output_projection],
+    );
+
+    // The total parameters should be greater than 0 for a model with actual layers
+    let param_count = llm.total_parameters();
+    assert!(param_count > 0);
+
+    // Let's validate that this is equal to the expected total number of parameters. (based on our source)
+    let expected_embeddings_parameters = vocab_size * EMBEDDING_DIM + MAX_SEQ_LEN * EMBEDDING_DIM;
+    let expected_transformer_block_parameters = (2 * EMBEDDING_DIM) + // LayerNorm
+    (3 * EMBEDDING_DIM * EMBEDDING_DIM) + // SelfAttention
+    (2 * EMBEDDING_DIM) + // LayerNorm
+    (EMBEDDING_DIM * HIDDEN_DIM + HIDDEN_DIM + HIDDEN_DIM * EMBEDDING_DIM + EMBEDDING_DIM); // FeedForward
+    let expected_output_projection_parameters = EMBEDDING_DIM * vocab_size + vocab_size;
+    assert!(
+        param_count
+            == expected_embeddings_parameters
+                + expected_transformer_block_parameters
+                + expected_output_projection_parameters
+    );
 }
