@@ -47,7 +47,7 @@ impl Vocab {
     pub fn default_words() -> Vec<&'static str> {
         vec!["hello", "world", "this", "is", "rust", "</s>"]
     }
-    
+
     /// Process text data to extract vocabulary words and add them to the vocabulary set
     pub fn process_text_for_vocab(texts: &[String], vocab_set: &mut HashSet<String>) {
         // Add end of sequence token
