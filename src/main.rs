@@ -23,63 +23,21 @@ fn main() {
     // Mock input - test conversational format
     let string = String::from("User: How do mountains form?");
 
-    // Extract all unique words from training data to create vocabulary
-    let mut vocab_set = std::collections::HashSet::new();
-
-    // Add end of sequence token
-    vocab_set.insert("</s>".to_string());
-
     let dataset = Dataset::new(
         String::from("data/pretraining_data.json"),
         String::from("data/chat_training_data.json"),
         DatasetType::JSON,
     ); // Placeholder, not used in this example
 
+    // Extract all unique words from training data to create vocabulary
+    let mut vocab_set = std::collections::HashSet::new();
+
     // Process all training examples for vocabulary
     // First process pre-training data
-    for text in &dataset.pretraining_data {
-        for word in text.split_whitespace() {
-            // Handle punctuation by splitting it from words
-            let mut current = String::new();
-            for c in word.chars() {
-                if c.is_ascii_punctuation() {
-                    if !current.is_empty() {
-                        vocab_set.insert(current.clone());
-                        current.clear();
-                    }
-                    vocab_set.insert(c.to_string());
-                } else {
-                    current.push(c);
-                }
-            }
-            if !current.is_empty() {
-                vocab_set.insert(current);
-            }
-        }
-    }
+    Vocab::process_text_for_vocab(&dataset.pretraining_data, &mut vocab_set);
 
     // Then process chat training data
-    for row in &dataset.chat_training_data {
-        // Add words from outputs
-        for word in row.split_whitespace() {
-            // Handle punctuation by splitting it from words
-            let mut current = String::new();
-            for c in word.chars() {
-                if c.is_ascii_punctuation() {
-                    if !current.is_empty() {
-                        vocab_set.insert(current.clone()); // Clone to avoid moving
-                        current.clear(); // Use clear() instead of String::new()
-                    }
-                    vocab_set.insert(c.to_string());
-                } else {
-                    current.push(c);
-                }
-            }
-            if !current.is_empty() {
-                vocab_set.insert(current);
-            }
-        }
-    }
+    Vocab::process_text_for_vocab(&dataset.chat_training_data, &mut vocab_set);
 
     let mut vocab_words: Vec<String> = vocab_set.into_iter().collect();
     vocab_words.sort(); // Sort for deterministic ordering
