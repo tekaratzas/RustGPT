@@ -125,7 +125,7 @@ impl LLM {
                 .to_owned()
                 .insert_axis(Axis(0));
 
-            // Softmax - convert activiations of each token to a probability distribution over the
+            // Softmax - convert activations of each token to a probability distribution over the
             // vocabulary
             let probs = Self::softmax(&last_logit); // 1 x vocab_size
 

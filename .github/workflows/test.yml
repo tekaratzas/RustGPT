@@ -37,31 +37,32 @@ jobs:
       - name: cargo nextest --locked
         run: cargo nextest run --locked --workspace --all-features --all-targets
 
-  coverage:
-    runs-on: ubuntu-latest
-    name: coverage
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Install rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
-          components: llvm-tools-preview
-      - name: cargo install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-      - name: cargo generate-lockfile
-        if: hashFiles('Cargo.lock') == ''
-        run: cargo generate-lockfile
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2        
-      - name: Install nextest
-        uses: taiki-e/install-action@nextest
-      - name: cargo llvm-cov
-        run: cargo llvm-cov nextest --locked --workspace --all-features --all-targets --lcov --output-path lcov.info
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v5
-        with:
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }} # required
+  # comment out coverage job for now, https://github.com/tekaratzas/RustGPT/pull/11#issuecomment-3361854174
+  # coverage:
+  #   runs-on: ubuntu-latest
+  #   name: coverage
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: true
+  #     - name: Install rust
+  #       uses: dtolnay/rust-toolchain@master
+  #       with:
+  #         toolchain: ${{ env.RUST_TOOLCHAIN }}
+  #         components: llvm-tools-preview
+  #     - name: cargo install cargo-llvm-cov
+  #       uses: taiki-e/install-action@cargo-llvm-cov
+  #     - name: cargo generate-lockfile
+  #       if: hashFiles('Cargo.lock') == ''
+  #       run: cargo generate-lockfile
+  #     - name: Rust Cache
+  #       uses: Swatinem/rust-cache@v2        
+  #     - name: Install nextest
+  #       uses: taiki-e/install-action@nextest
+  #     - name: cargo llvm-cov
+  #       run: cargo llvm-cov nextest --locked --workspace --all-features --all-targets --lcov --output-path lcov.info
+  #     - name: Upload to codecov.io
+  #       uses: codecov/codecov-action@v5
+  #       with:
+  #         fail_ci_if_error: true
+  #         token: ${{ secrets.CODECOV_TOKEN }} # required
