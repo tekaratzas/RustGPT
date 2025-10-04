@@ -1,6 +1,7 @@
-use crate::{EMBEDDING_DIM, MAX_SEQ_LEN, adam::Adam, llm::Layer, vocab::Vocab};
 use ndarray::{Array2, s};
 use rand_distr::{Distribution, Normal};
+
+use crate::{EMBEDDING_DIM, MAX_SEQ_LEN, adam::Adam, llm::Layer, vocab::Vocab};
 
 pub struct Embeddings {
     pub token_embeddings: Array2<f32>,
