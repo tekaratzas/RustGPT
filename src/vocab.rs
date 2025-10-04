@@ -1,5 +1,6 @@
 use bincode::Encode;
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 #[derive(Clone, Encode)]
 pub struct Vocab {
@@ -45,6 +46,34 @@ impl Vocab {
 
     pub fn default_words() -> Vec<&'static str> {
         vec!["hello", "world", "this", "is", "rust", "</s>"]
+    }
+
+    /// Process text data to extract vocabulary words and add them to the vocabulary set
+    pub fn process_text_for_vocab(texts: &[String], vocab_set: &mut HashSet<String>) {
+        // Add end of sequence token
+        vocab_set.insert("</s>".to_string());
+
+        // Process all training examples for vocabulary
+        for text in texts {
+            for word in text.split_whitespace() {
+                // Handle punctuation by splitting it from words
+                let mut current = String::new();
+                for c in word.chars() {
+                    if c.is_ascii_punctuation() {
+                        if !current.is_empty() {
+                            vocab_set.insert(current.clone());
+                            current.clear();
+                        }
+                        vocab_set.insert(c.to_string());
+                    } else {
+                        current.push(c);
+                    }
+                }
+                if !current.is_empty() {
+                    vocab_set.insert(current);
+                }
+            }
+        }
     }
 }
 
