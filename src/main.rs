@@ -1,12 +1,12 @@
 use std::io::Write;
 
-use crate::embeddings::Embeddings;
-use crate::llm::LLM;
-use crate::output_projection::OutputProjection;
-use crate::transformer::TransformerBlock;
-use crate::vocab::Vocab;
 use ::llm::{EMBEDDING_DIM, HIDDEN_DIM, MAX_SEQ_LEN};
 use dataset_loader::{Dataset, DatasetType};
+
+use crate::{
+    embeddings::Embeddings, llm::LLM, output_projection::OutputProjection,
+    transformer::TransformerBlock, vocab::Vocab,
+};
 
 mod adam;
 mod dataset_loader;
