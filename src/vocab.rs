@@ -1,6 +1,6 @@
+use std::collections::{HashMap, HashSet};
+
 use bincode::Encode;
-use std::collections::HashMap;
-use std::collections::HashSet;
 
 #[derive(Clone, Encode)]
 pub struct Vocab {
@@ -77,10 +77,10 @@ impl Vocab {
     }
 }
 
-impl Into<String> for Vocab {
-    fn into(self) -> String {
+impl From<Vocab> for String {
+    fn from(val: Vocab) -> Self {
         String::from_iter(
-            self.words
+            val.words
                 .iter()
                 .enumerate()
                 .map(|(i, str)| format!("({i},{str}),")),
