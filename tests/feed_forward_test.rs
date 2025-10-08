@@ -1,5 +1,4 @@
-use llm::feed_forward::FeedForward;
-use llm::{EMBEDDING_DIM, HIDDEN_DIM, Layer};
+use llm::{EMBEDDING_DIM, HIDDEN_DIM, Layer, feed_forward::FeedForward};
 use ndarray::Array2;
 
 #[test]

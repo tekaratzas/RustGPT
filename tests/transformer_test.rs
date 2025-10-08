@@ -1,5 +1,4 @@
-use llm::transformer::TransformerBlock;
-use llm::{EMBEDDING_DIM, HIDDEN_DIM, Layer};
+use llm::{EMBEDDING_DIM, HIDDEN_DIM, Layer, transformer::TransformerBlock};
 use ndarray::Array2;
 
 #[test]
