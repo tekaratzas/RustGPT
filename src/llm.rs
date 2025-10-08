@@ -238,10 +238,10 @@ impl LLM {
             }
 
             // Add any remaining word
-            if !current_word.is_empty()
-                && let Some(token_id) = self.vocab.encode(&current_word)
-            {
-                tokens.push(token_id);
+            if !current_word.is_empty() {
+                if let Some(token_id) = self.vocab.encode(&current_word) {
+                    tokens.push(token_id);
+                }
             }
         }
 
