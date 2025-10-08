@@ -1,14 +1,11 @@
 use std::io::Write;
 
 use crate::embeddings::Embeddings;
-use crate::llm::LLM;
+use crate::llm::{LLM, EMBEDDING_DIM, HIDDEN_DIM, MAX_SEQ_LEN};
 use crate::output_projection::OutputProjection;
 use crate::transformer::TransformerBlock;
 use crate::vocab::Vocab;
-use ::llm::{EMBEDDING_DIM, HIDDEN_DIM, MAX_SEQ_LEN};
-use dataset_loader::{Dataset, DatasetType};
 
-// Import local modules that make up different parts of the model
 mod adam;
 mod dataset_loader;
 mod embeddings;
