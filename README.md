@@ -1,6 +1,7 @@
 # 🦀 Rust LLM from Scratch
 
-[![Rust](https://github.com/tekaratzas/RustGPT/actions/workflows/rust.yml/badge.svg)](https://github.com/tekaratzas/RustGPT/actions/workflows/rust.yml)
+[![Check](https://github.com/tekaratzas/RustGPT/actions/workflows/check.yml/badge.svg)](https://github.com/tekaratzas/RustGPT/actions/workflows/check.yml) [![Test](https://github.com/tekaratzas/RustGPT/actions/workflows/test.yml/badge.svg)](https://github.com/tekaratzas/RustGPT/actions/workflows/test.yml)
+
 
 https://github.com/user-attachments/assets/ec4a4100-b03a-4b3c-a7d6-806ea54ed4ed
 
