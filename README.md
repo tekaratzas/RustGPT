@@ -41,17 +41,18 @@ Input Text → Tokenization → Embeddings → Transformer Blocks → Output Pro
 
 ```
 src/
-├── main.rs              # 🎯 Training pipeline and interactive mode
-├── llm.rs               # 🧠 Core LLM implementation and training logic
-├── lib.rs               # 📚 Library exports and constants
-├── transformer.rs       # 🔄 Transformer block (attention + feed-forward)
-├── self_attention.rs    # 👀 Multi-head self-attention mechanism
-├── feed_forward.rs      # ⚡ Position-wise feed-forward networks
-├── embeddings.rs        # 📊 Token embedding layer
-├── output_projection.rs # 🎰 Final linear layer for vocabulary predictions
-├── vocab.rs            # 📝 Vocabulary management and tokenization
-├── layer_norm.rs       # 🧮 Layer normalization
-└── adam.rs             # 🏃 Adam optimizer implementation
+├── main.rs                  # 🎯 Training pipeline and interactive mode
+├── llm.rs                   # 🧠 Core LLM implementation and training logic
+├── lib.rs                   # 📚 Library exports and constants
+├── transformer.rs           # 🔄 Transformer block (multi-head attention + feed-forward)
+├── multi_head_attention.rs  # 👀 Multi-head self-attention mechanism (default)
+├── self_attention.rs        # 👁️ Single-head attention (legacy)
+├── feed_forward.rs          # ⚡ Position-wise feed-forward networks
+├── embeddings.rs            # 📊 Token embedding layer
+├── output_projection.rs     # 🎰 Final linear layer for vocabulary predictions
+├── vocab.rs                # 📝 Vocabulary management and tokenization
+├── layer_norm.rs           # 🧮 Layer normalization
+└── adam.rs                 # 🏃 Adam optimizer implementation
 
 tests/
 ├── llm_test.rs         # Tests for core LLM functionality
@@ -110,8 +111,9 @@ Model output: Rain is caused by water vapor in clouds condensing into droplets t
 - **Vocabulary Size**: Dynamic (built from training data)
 - **Embedding Dimension**: 128 (defined by `EMBEDDING_DIM` in `src/lib.rs`)
 - **Hidden Dimension**: 256 (defined by `HIDDEN_DIM` in `src/lib.rs`)
+- **Number of Attention Heads**: 8 (defined by `NUM_HEADS` in `src/lib.rs`)
 - **Max Sequence Length**: 80 tokens (defined by `MAX_SEQ_LEN` in `src/lib.rs`)
-- **Architecture**: 3 Transformer blocks + embeddings + output projection
+- **Architecture**: 3 Multi-Head Transformer blocks + embeddings + output projection
 
 ### Training Details
 - **Optimizer**: Adam with gradient clipping
@@ -174,7 +176,7 @@ Contributions are welcome! This project is perfect for learning and experimentat
 - **📊 Evaluation metrics** - Perplexity, benchmarks, training visualizations
 
 ### Areas for Improvement
-- **Advanced architectures** (multi-head attention, positional encoding, RoPE)
+- **Advanced architectures** (~~multi-head attention~~✅, positional encoding, RoPE)
 - **Training improvements** (different optimizers, learning rate schedules, regularization)
 - **Data handling** (larger datasets, tokenizer improvements, streaming)
 - **Model analysis** (attention visualization, gradient analysis, interpretability)
@@ -194,8 +196,8 @@ Contributions are welcome! This project is perfect for learning and experimentat
 
 ### Ideas for Contributions
 - 🚀 **Beginner**: Model save/load, more training data, config files
-- 🔥 **Intermediate**: Beam search, positional encodings, training checkpoints
-- ⚡ **Advanced**: Multi-head attention, layer parallelization, custom optimizations
+- 🔥 **Intermediate**: Beam search, positional encodings (RoPE), training checkpoints
+- ⚡ **Advanced**: Layer parallelization, Flash Attention, custom optimizations
 
 Questions? Open an issue or start a discussion!
 

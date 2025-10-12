@@ -3,8 +3,8 @@ use std::cmp::Ordering;
 use ndarray::{Array1, Array2, Axis};
 
 use crate::{
-    EMBEDDING_DIM, Embeddings, HIDDEN_DIM, MAX_SEQ_LEN, Vocab, output_projection::OutputProjection,
-    transformer::TransformerBlock,
+    EMBEDDING_DIM, Embeddings, HIDDEN_DIM, MAX_SEQ_LEN, NUM_HEADS, Vocab,
+    output_projection::OutputProjection, transformer::MultiHeadTransformerBlock,
 };
 pub trait Layer {
     fn layer_type(&self) -> &str;
@@ -24,7 +24,8 @@ pub struct LLM {
 
 impl Default for LLM {
     fn default() -> Self {
-        let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+        let transformer_block =
+            MultiHeadTransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, NUM_HEADS);
         let output_projection = OutputProjection::new(EMBEDDING_DIM, Vocab::default_words().len());
         Self {
             vocab: Vocab::default(),

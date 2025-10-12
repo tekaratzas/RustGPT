@@ -1,11 +1,11 @@
 use std::io::Write;
 
-use ::llm::{EMBEDDING_DIM, HIDDEN_DIM, MAX_SEQ_LEN};
+use ::llm::{EMBEDDING_DIM, HIDDEN_DIM, MAX_SEQ_LEN, NUM_HEADS};
 use dataset_loader::{Dataset, DatasetType};
 
 use crate::{
     embeddings::Embeddings, llm::LLM, output_projection::OutputProjection,
-    transformer::TransformerBlock, vocab::Vocab,
+    transformer::MultiHeadTransformerBlock, vocab::Vocab,
 };
 
 mod adam;
@@ -14,6 +14,7 @@ mod embeddings;
 mod feed_forward;
 mod layer_norm;
 mod llm;
+mod multi_head_attention;
 mod output_projection;
 mod self_attention;
 mod transformer;
@@ -44,9 +45,9 @@ fn main() {
     let vocab_words_refs: Vec<&str> = vocab_words.iter().map(|s: &String| s.as_str()).collect();
     let vocab = Vocab::new(vocab_words_refs);
 
-    let transformer_block_1 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-    let transformer_block_2 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-    let transformer_block_3 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+    let transformer_block_1 = MultiHeadTransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, NUM_HEADS);
+    let transformer_block_2 = MultiHeadTransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, NUM_HEADS);
+    let transformer_block_3 = MultiHeadTransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, NUM_HEADS);
     let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
     let embeddings = Embeddings::new(vocab.clone());
     let mut llm = LLM::new(
@@ -63,8 +64,8 @@ fn main() {
     println!("\n=== MODEL INFORMATION ===");
     println!("Network architecture: {}", llm.network_description());
     println!(
-        "Model configuration -> max_seq_len: {}, embedding_dim: {}, hidden_dim: {}",
-        MAX_SEQ_LEN, EMBEDDING_DIM, HIDDEN_DIM
+        "Model configuration -> max_seq_len: {}, embedding_dim: {}, hidden_dim: {}, num_heads: {}",
+        MAX_SEQ_LEN, EMBEDDING_DIM, HIDDEN_DIM, NUM_HEADS
     );
 
     println!("Total parameters: {}", llm.total_parameters());
