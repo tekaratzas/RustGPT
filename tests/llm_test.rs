@@ -1,6 +1,6 @@
 use llm::{
-    EMBEDDING_DIM, Embeddings, HIDDEN_DIM, LLM, Layer, MAX_SEQ_LEN, Vocab,
-    output_projection::OutputProjection, transformer::TransformerBlock,
+    EMBEDDING_DIM, Embeddings, HIDDEN_DIM, LLM, Layer, MAX_SEQ_LEN, NUM_HEADS, Vocab,
+    output_projection::OutputProjection, transformer::MultiHeadTransformerBlock,
 };
 use ndarray::Array2;
 
@@ -143,7 +143,11 @@ fn test_llm_total_parameters() {
 
     // Create an LLM with actual layers to get a meaningful parameter count
     let embeddings = Box::new(Embeddings::new(vocab.clone()));
-    let transformer_block = Box::new(TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM));
+    let transformer_block = Box::new(MultiHeadTransformerBlock::new(
+        EMBEDDING_DIM,
+        HIDDEN_DIM,
+        NUM_HEADS,
+    ));
     let output_projection = Box::new(OutputProjection::new(EMBEDDING_DIM, vocab_size));
 
     let llm = LLM::new(
@@ -159,7 +163,7 @@ fn test_llm_total_parameters() {
     // source)
     let expected_embeddings_parameters = vocab_size * EMBEDDING_DIM + MAX_SEQ_LEN * EMBEDDING_DIM;
     let expected_transformer_block_parameters = (2 * EMBEDDING_DIM) + // LayerNorm
-    (3 * EMBEDDING_DIM * EMBEDDING_DIM) + // SelfAttention
+    (4 * EMBEDDING_DIM * EMBEDDING_DIM) + // MultiHeadAttention (W_q, W_k, W_v, W_o)
     (2 * EMBEDDING_DIM) + // LayerNorm
     (EMBEDDING_DIM * HIDDEN_DIM + HIDDEN_DIM + HIDDEN_DIM * EMBEDDING_DIM + EMBEDDING_DIM); // FeedForward
     let expected_output_projection_parameters = EMBEDDING_DIM * vocab_size + vocab_size;

@@ -4,6 +4,7 @@ pub mod embeddings;
 pub mod feed_forward;
 pub mod layer_norm;
 pub mod llm;
+pub mod multi_head_attention;
 pub mod output_projection;
 pub mod self_attention;
 pub mod transformer;
@@ -18,3 +19,4 @@ pub use vocab::Vocab;
 pub const MAX_SEQ_LEN: usize = 80;
 pub const EMBEDDING_DIM: usize = 128;
 pub const HIDDEN_DIM: usize = 256;
+pub const NUM_HEADS: usize = 8; // Number of attention heads for multi-head attention

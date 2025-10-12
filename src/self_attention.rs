@@ -5,6 +5,10 @@ use rand_distr::{Distribution, Normal};
 
 use crate::{EMBEDDING_DIM, adam::Adam, llm::Layer};
 
+/// Legacy single-head self-attention implementation.
+/// This has been superseded by MultiHeadAttention.
+/// Kept for reference and backward compatibility.
+#[allow(dead_code)]
 pub struct SelfAttention {
     pub embedding_dim: usize,
     w_q: Array2<f32>, // Weight matrices for Q, K, V
@@ -26,6 +30,7 @@ impl Default for SelfAttention {
 
 impl SelfAttention {
     /// Initializes a Transformer with random Q, K, V weights
+    #[allow(dead_code)]
     pub fn new(embedding_dim: usize) -> Self {
         let mut rng = rand::rng();
         // Xavier/He initialization: std = sqrt(2 / fan_in)
@@ -44,6 +49,7 @@ impl SelfAttention {
         }
     }
 
+    #[allow(dead_code)]
     fn compute_qkv(&self, input: &Array2<f32>) -> (Array2<f32>, Array2<f32>, Array2<f32>) {
         let q = input.dot(&self.w_q); // Q = X * W_Q
         let k = input.dot(&self.w_k); // K = X * W_K
@@ -51,6 +57,7 @@ impl SelfAttention {
         (q, k, v)
     }
 
+    #[allow(dead_code)]
     fn attention(&self, q: &Array2<f32>, k: &Array2<f32>, v: &Array2<f32>) -> Array2<f32> {
         let dk = (self.embedding_dim as f32).sqrt();
 
@@ -69,6 +76,7 @@ impl SelfAttention {
         weights.dot(v)
     }
 
+    #[allow(dead_code)]
     fn softmax(&self, scores: &Array2<f32>) -> Array2<f32> {
         let mut result = scores.clone();
 
@@ -88,6 +96,7 @@ impl SelfAttention {
         result
     }
 
+    #[allow(dead_code)]
     fn softmax_backward(
         softmax_output: &Array2<f32>, // shape: [seq_len, vocab_size]
         grad_output: &Array2<f32>,    // shape: [seq_len, vocab_size]
