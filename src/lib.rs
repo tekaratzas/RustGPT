@@ -1,4 +1,5 @@
 pub mod adam;
+pub mod batch_mode;
 pub mod dataset_loader;
 pub mod embeddings;
 pub mod feed_forward;
@@ -14,7 +15,14 @@ pub use embeddings::Embeddings;
 pub use llm::{LLM, Layer};
 pub use vocab::Vocab;
 
+// Re-export batch_mode structs
+pub use batch_mode::llm::LLM as BatchLLM;
+pub use batch_mode::llm::Layer as BatchLayer;
+pub use batch_mode::output_projection::OutputProjection as BatchOutputProjection;
+pub use batch_mode::feed_forward::FeedForward as BatchFeedForward;
+
 // Constants
 pub const MAX_SEQ_LEN: usize = 80;
 pub const EMBEDDING_DIM: usize = 128;
 pub const HIDDEN_DIM: usize = 256;
+pub const BATCH_SIZE: usize = 4;
