@@ -19,6 +19,7 @@ pub use vocab::Vocab;
 pub use batch_mode::llm::LLM as BatchLLM;
 pub use batch_mode::llm::Layer as BatchLayer;
 pub use batch_mode::output_projection::OutputProjection as BatchOutputProjection;
+pub use batch_mode::feed_forward::FeedForward as BatchFeedForward;
 
 // Constants
 pub const MAX_SEQ_LEN: usize = 80;
