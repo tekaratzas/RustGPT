@@ -11,9 +11,9 @@ pub struct TransformerBlock {
 }
 
 impl TransformerBlock {
-    pub fn new(embedding_dim: usize, hidden_dim: usize) -> Self {
+     pub fn new(embedding_dim: usize, hidden_dim: usize, num_heads: usize) -> Self {
         TransformerBlock {
-            attention: SelfAttention::new(embedding_dim),
+            attention: SelfAttention::new(embedding_dim,num_heads),
             feed_forward: FeedForward::new(embedding_dim, hidden_dim),
             norm1: LayerNorm::new(embedding_dim),
             norm2: LayerNorm::new(embedding_dim),

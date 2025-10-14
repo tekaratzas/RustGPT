@@ -173,9 +173,11 @@ fn main() {
     let vocab_words_refs: Vec<&str> = vocab_words.iter().map(|s| s.as_str()).collect();
     let vocab = Vocab::new(vocab_words_refs);
 
-    let transformer_block_1 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-    let transformer_block_2 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
-    let transformer_block_3 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+     // Using 8 attention heads (EMBEDDING_DIM=128 / 8 = 16 dim per head)
+    let num_heads = 8;
+    let transformer_block_1 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, num_heads);
+    let transformer_block_2 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, num_heads);
+    let transformer_block_3 = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, num_heads);
     let output_projection = OutputProjection::new(EMBEDDING_DIM, vocab.words.len());
     let embeddings = Embeddings::new(vocab.clone());
     let mut llm = LLM::new(vocab, vec![
@@ -188,6 +190,11 @@ fn main() {
 
     println!("\n=== MODEL INFORMATION ===");
     println!("Network architecture: {}", llm.network_description());
+    println!(
+        "Model configuration -> max_seq_len: {}, embedding_dim: {}, hidden_dim: {}, num_heads: {}",
+        MAX_SEQ_LEN, EMBEDDING_DIM, HIDDEN_DIM, num_heads
+    );
+
     
     println!("\n=== BEFORE TRAINING ===");
     println!("Input: {}", string);

@@ -23,7 +23,8 @@ pub struct LLM {
 
 impl Default for LLM {
     fn default() -> Self {
-        let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+        let num_heads = 8; // Default to 8 attention heads
+        let transformer_block = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, num_heads);
         let output_projection = OutputProjection::new(EMBEDDING_DIM, Vocab::default_words().len());
         Self {
             vocab: Vocab::default(),
@@ -128,7 +129,7 @@ impl LLM {
     pub fn train(&mut self, data: Vec<&str>, epochs: usize, lr: f32) {
         let tokenized_data = data
             .iter()
-            .map(|input| (self.tokenize(input)))
+            .map(|input| self.tokenize(input))
             .collect::<Vec<Vec<usize>>>();
 
         for epoch in 0..epochs {

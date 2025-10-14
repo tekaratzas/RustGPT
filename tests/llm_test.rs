@@ -134,3 +134,41 @@ fn test_llm_integration() {
         input_text
     ], 10, 0.01);
 }
+
+
+
+#[test]
+fn test_llm_total_parameters() {
+    let vocab = Vocab::default();
+    let vocab_size = vocab.encode.len();
+
+    // Create an LLM with actual layers to get a meaningful parameter count
+    let num_heads = 8;
+    let embeddings = Box::new(Embeddings::new(vocab.clone()));
+    let transformer_block = Box::new(TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, num_heads));
+    let output_projection = Box::new(OutputProjection::new(EMBEDDING_DIM, vocab_size));
+
+    let llm = LLM::new(
+        vocab.clone(),
+        vec![embeddings, transformer_block, output_projection],
+    );
+
+    // The total parameters should be greater than 0 for a model with actual layers
+    let param_count = llm.total_parameters();
+    assert!(param_count > 0);
+
+    // Let's validate that this is equal to the expected total number of parameters. (based on our
+    // source)
+    let expected_embeddings_parameters = vocab_size * EMBEDDING_DIM + MAX_SEQ_LEN * EMBEDDING_DIM;
+    let expected_transformer_block_parameters = (2 * EMBEDDING_DIM) + // LayerNorm 1
+    (4 * EMBEDDING_DIM * EMBEDDING_DIM) + // Multi-Head SelfAttention (Q, K, V, O projection matrices)
+    (2 * EMBEDDING_DIM) + // LayerNorm 2
+    (EMBEDDING_DIM * HIDDEN_DIM + HIDDEN_DIM + HIDDEN_DIM * EMBEDDING_DIM + EMBEDDING_DIM); // FeedForward
+    let expected_output_projection_parameters = EMBEDDING_DIM * vocab_size + vocab_size;
+    assert!(
+        param_count
+            == expected_embeddings_parameters
+                + expected_transformer_block_parameters
+                + expected_output_projection_parameters
+    );
+}

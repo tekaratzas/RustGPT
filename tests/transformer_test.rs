@@ -4,7 +4,9 @@ use llm::transformer::TransformerBlock;
 
 #[test]
 fn test_transformer_block() {
-    let mut transformer = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM);
+    let num_heads = 8;
+    let mut transformer = TransformerBlock::new(EMBEDDING_DIM, HIDDEN_DIM, num_heads);
+
     
     // Create a simple input tensor
     let input = Array2::ones((1, EMBEDDING_DIM));
