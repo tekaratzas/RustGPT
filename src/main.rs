@@ -21,11 +21,11 @@ mod vocab;
 
 fn main() {
     // Mock input - test conversational format
-    let string = String::from("User: How do mountains form?");
+    let string = String::from("User: can you recommend effective core ab exercises?");
 
     let dataset = Dataset::new(
-        String::from("data/pretraining_data.json"),
-        String::from("data/chat_training_data.json"),
+        String::from("data/fitness_pretraining_data.json"),
+        String::from("data/fitness_question_answers.json"),
         DatasetType::JSON,
     ); // Placeholder, not used in this example
 
